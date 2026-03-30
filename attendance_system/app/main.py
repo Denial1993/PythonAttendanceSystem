@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 import os
 
 from app.database import engine, Base
-from app.routers import attendance, chat, auth
+from app.routers import attendance, chat, auth, users, leave
 
 # 啟動時自動建立所有的資料庫表格 (正式環境通常由 Alembic 代勞，這裡為了方便測試)
 Base.metadata.create_all(bind=engine)
@@ -19,6 +19,8 @@ templates = Jinja2Templates(directory=templates_dir)
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(attendance.router, prefix="/api/attendance", tags=["Attendance"])
 app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
+app.include_router(users.router, prefix="/api/users", tags=["Users"])
+app.include_router(leave.router, prefix="/api/leave", tags=["Leave"])
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):

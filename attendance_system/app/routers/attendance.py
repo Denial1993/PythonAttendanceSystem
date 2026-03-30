@@ -8,9 +8,13 @@ TW_TZ = timezone(timedelta(hours=8))
 
 from app.database import get_db
 from app.models import Attendance, User
-from app.schemas import Attendance as AttendanceSchema
+from app.schemas import Attendance as AttendanceSchema, AttendanceDailyDetail, AttendanceMonthlySummary
 
 router = APIRouter()
+
+# 標準上班時間（日後如需可改成資料庫設定）
+WORK_START_HOUR = 9
+WORK_START_MINUTE = 0
 
 @router.post("/", response_model=AttendanceSchema)
 def check_in_or_update(employee_name: str, action: str, db: Session = Depends(get_db)):
@@ -113,6 +117,99 @@ def search_attendance(
         
     records = query.order_by(Attendance.date.desc()).all()
     return records
+
+@router.get("/summary", response_model=AttendanceMonthlySummary)
+def get_monthly_summary(
+    username: str,
+    year: int,
+    month: int,
+    target_username: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    取得員工指定月份的出勤統計摘要。
+    Role 3 僅能查自己；Role 1/2 可帶入 target_username 查他人。
+    """
+    current_user = db.query(User).filter(User.username == username).first()
+    if not current_user:
+        raise HTTPException(status_code=401, detail="無效帳號")
+
+    # 決定要查詢的員工名
+    if current_user.role in (1, 2) and target_username:
+        target_user = db.query(User).filter(User.username == target_username).first()
+        if not target_user:
+            raise HTTPException(status_code=404, detail="目標員工不存在")
+        employee_name = target_user.employee_name
+    else:
+        # Role 3 鎖定只能查自己
+        employee_name = current_user.employee_name
+
+    # 查詢指定年月的所有打卡記錄
+    from datetime import date as date_type
+    import calendar
+    _, last_day = calendar.monthrange(year, month)
+    start_date = date_type(year, month, 1)
+    end_date = date_type(year, month, last_day)
+
+    records = db.query(Attendance).filter(
+        Attendance.employee_name == employee_name,
+        Attendance.date >= start_date,
+        Attendance.date <= end_date
+    ).order_by(Attendance.date.asc()).all()
+
+    # 計算統計
+    from datetime import time as time_type
+    work_start = time_type(WORK_START_HOUR, WORK_START_MINUTE)
+
+    work_days = 0
+    late_count = 0
+    total_late_minutes = 0
+    missing_checkin_days = 0
+    missing_checkout_days = 0
+    daily_details = []
+
+    for rec in records:
+        work_days += 1
+        is_late = False
+        late_minutes = 0
+        is_missing_checkin = rec.check_in_time is None
+        is_missing_checkout = rec.check_out_time is None
+
+        if is_missing_checkin:
+            missing_checkin_days += 1
+        elif rec.check_in_time > work_start:
+            # 遲到計算
+            is_late = True
+            late_minutes = (
+                (rec.check_in_time.hour * 60 + rec.check_in_time.minute)
+                - (WORK_START_HOUR * 60 + WORK_START_MINUTE)
+            )
+            late_count += 1
+            total_late_minutes += late_minutes
+
+        if is_missing_checkout:
+            missing_checkout_days += 1
+
+        daily_details.append(AttendanceDailyDetail(
+            date=rec.date,
+            check_in_time=rec.check_in_time,
+            check_out_time=rec.check_out_time,
+            is_late=is_late,
+            late_minutes=late_minutes,
+            is_missing_checkin=is_missing_checkin,
+            is_missing_checkout=is_missing_checkout,
+        ))
+
+    return AttendanceMonthlySummary(
+        year=year,
+        month=month,
+        work_days=work_days,
+        late_count=late_count,
+        total_late_minutes=total_late_minutes,
+        missing_checkin_days=missing_checkin_days,
+        missing_checkout_days=missing_checkout_days,
+        daily_details=daily_details,
+    )
 
 @router.get("/{employee_name}", response_model=List[AttendanceSchema])
 def get_attendance_records(employee_name: str, db: Session = Depends(get_db)):

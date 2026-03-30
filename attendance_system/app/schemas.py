@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional
+from typing import Optional, List
 from datetime import date, time
 
 class UserCreate(BaseModel):
@@ -17,8 +17,16 @@ class UserResponse(BaseModel):
     username: str
     employee_name: str
     role: int
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    salary: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserProfileUpdate(BaseModel):
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    salary: Optional[int] = None
 
 class AttendanceBase(BaseModel):
     employee_name: str
@@ -37,5 +45,50 @@ class Attendance(AttendanceBase):
     lunch_in_time: Optional[time] = None
     check_out_time: Optional[time] = None
     status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class AttendanceDailyDetail(BaseModel):
+    """每日出勤明細"""
+    date: date
+    check_in_time: Optional[time] = None
+    check_out_time: Optional[time] = None
+    is_late: bool = False
+    late_minutes: int = 0
+    is_missing_checkin: bool = False   # 有記錄但漏打上班卡
+    is_missing_checkout: bool = False  # 有記錄但漏打下班卡
+
+class AttendanceMonthlySummary(BaseModel):
+    """月份出勤統計摘要"""
+    year: int
+    month: int
+    work_days: int           # 本月出勤天數（有打卡記錄的天數）
+    late_count: int          # 遲到次數
+    total_late_minutes: int  # 遲到總分鐘數
+    missing_checkin_days: int   # 缺打上班卡天數
+    missing_checkout_days: int  # 缺打下班卡天數
+    daily_details: List[AttendanceDailyDetail]
+
+# === 假單管理相關 ===
+class LeaveRequestCreate(BaseModel):
+    leave_type: str
+    start_time: str
+    end_time: str
+    reason: Optional[str] = None
+
+class LeaveRequestUpdateStatus(BaseModel):
+    status: str # "approved" 或 "rejected"
+
+class LeaveRequestResponse(BaseModel):
+    id: int
+    user_id: int
+    employee_name: Optional[str] = None # 用於前端顯示申請人姓名
+    leave_type: str
+    start_time: str
+    end_time: str
+    reason: Optional[str] = None
+    status: str
+    created_at: str
+    updated_at: str
 
     model_config = ConfigDict(from_attributes=True)

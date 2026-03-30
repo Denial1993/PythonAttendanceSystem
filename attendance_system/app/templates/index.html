@@ -63,6 +63,7 @@
             margin-bottom: 8px;
             background: linear-gradient(to right, #ff758c 0%, #ff7eb3 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -457,6 +458,238 @@
         .dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
 
+        /* ---------------- 員工名冊表格 ---------------- */
+        .employee-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        .employee-table th {
+            padding: 8px 10px;
+            text-align: left;
+            color: #a0a0b0;
+            font-weight: 600;
+            border-bottom: 1px solid var(--glass-border);
+            white-space: nowrap;
+        }
+        .employee-table td {
+            padding: 10px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #e2e8f0;
+        }
+        .employee-table tr:last-child td { border-bottom: none; }
+        .employee-table tr:hover td { background: rgba(255,255,255,0.03); }
+        .btn-edit-sm {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            color: #a5b4fc;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-edit-sm:hover { background: rgba(102, 126, 234, 0.4); }
+
+        /* ---------------- 個人資料卡片 ---------------- */
+        .profile-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 16px;
+            padding: 16px 20px;
+            border: 1px solid var(--glass-border);
+            text-align: left;
+            margin-top: 6px;
+        }
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 0.9rem;
+        }
+        .profile-row:last-child { border-bottom: none; }
+        .profile-label { color: #a0a0b0; }
+        .profile-val { font-weight: 600; color: #e2e8f0; }
+
+        /* ---------------- Modal ---------------- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: #1e1e2f;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-box h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0 0 20px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-cancel {
+            flex: 1;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: #a0a0b0;
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .btn-cancel:hover { background: rgba(255,255,255,0.05); }
+
+        /* ===== 出勤統計 ===== */
+        .stats-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .month-picker {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }
+        .month-picker::-webkit-calendar-picker-indicator { filter: invert(1); }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card .stat-num {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-card.warn .stat-num {
+            background: linear-gradient(135deg, #fb923c, #f43f5e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-card .stat-label {
+            font-size: 0.78rem;
+            color: #a0a0b0;
+            letter-spacing: 0.5px;
+        }
+        .daily-detail-list { list-style: none; padding: 0; margin: 0; }
+        .daily-detail-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            background: rgba(255,255,255,0.03);
+            font-size: 0.85rem;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .daily-detail-list li.late { background: rgba(251, 146, 60, 0.1); }
+        .daily-detail-list li.missing { background: rgba(244, 63, 94, 0.1); }
+        .detail-date { color: #a0a0b0; white-space: nowrap; }
+        .detail-time { color: #e0e0f0; }
+        .detail-badge {
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .badge-late { background: rgba(251,146,60,0.25); color: #fb923c; }
+        .badge-missing { background: rgba(244,63,94,0.25); color: #f43f5e; }
+        .badge-ok { background: rgba(34,197,94,0.2); color: #4ade80; }
+        .no-stats-msg {
+            text-align: center;
+            color: #a0a0b0;
+            padding: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        /* ===== 請假系統 ===== */
+        .leave-form-container {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .leave-list-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .leave-list-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .leave-status {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .status-pending { background: rgba(160,160,176,0.2); color: #c0c0d0; }
+        .status-approved { background: rgba(34,197,94,0.2); color: #4ade80; }
+        .status-rejected { background: rgba(244,63,94,0.2); color: #f43f5e; }
+        .leave-dates { color: #e0e0f0; font-size: 0.85rem; margin-bottom: 6px; }
+        .leave-reason { color: #a0a0b0; font-size: 0.85rem; }
+        .btn-approve { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+        .btn-approve:hover { background: rgba(34,197,94,0.25); }
+        .btn-reject { background: rgba(244,63,94,0.15); color: #f43f5e; border: 1px solid rgba(244,63,94,0.3); }
+        .btn-reject:hover { background: rgba(244,63,94,0.25); }
+        .leave-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .leave-actions button {
+            flex: 1; padding: 6px; font-size: 0.8rem; border-radius: 8px; cursor: pointer; transition: 0.2s;
+        }
+
     </style>
 </head>
 <body>
@@ -577,11 +810,160 @@
                 </div>
             </div>
 
-            <button class="btn btn-logout" onclick="performLogout()">
+            <!-- 個人資料 (所有角色可見) -->
+            <div class="board-container" id="myProfileContainer" style="margin-top: 20px;">
+                <div class="board-title">
+                    <i class="fa-solid fa-id-card"></i> 我的個人資料
+                </div>
+                <div class="profile-card" id="myProfileCard">
+                    <div class="profile-row"><span class="profile-label">姓名</span><span class="profile-val" id="profileName">-</span></div>
+                    <div class="profile-row"><span class="profile-label">電話</span><span class="profile-val" id="profilePhone">-</span></div>
+                    <div class="profile-row"><span class="profile-label">地址</span><span class="profile-val" id="profileAddress" style="max-width:60%; text-align:right;">-</span></div>
+                    <div class="profile-row" id="profileSalaryRow"><span class="profile-label">月薪</span><span class="profile-val" id="profileSalary">-</span></div>
+                </div>
+            </div>
+
+            <!-- 員工名冊 (Role 1, 2 可見) -->
+            <div class="board-container" id="staffListContainer" style="margin-top: 20px; display: none;">
+                <div class="board-title">
+                    <i class="fa-solid fa-users-gear"></i> 員工名冊
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="employee-table">
+                        <thead>
+                            <tr>
+                                <th>姓名</th>
+                                <th>帳號</th>
+                                <th>電話</th>
+                                <th>月薪</th>
+                                <th>角色</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTableBody">
+                            <!-- 動態渲染 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 本月出勤統計 (所有角色可見) -->
+            <div class="board-container" id="monthlyStatsContainer" style="margin-top: 20px;">
+                <div class="board-title">
+                    <i class="fa-solid fa-chart-bar"></i> 本月出勤統計
+                </div>
+                <div class="stats-header">
+                    <span style="font-size:0.87rem; color:#a0a0b0;">選擇月份查看出勤紀錄</span>
+                    <input type="month" id="monthPicker" class="month-picker">
+                </div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-num" id="statWorkDays">-</div>
+                        <div class="stat-label">出勤天數</div>
+                    </div>
+                    <div class="stat-card warn">
+                        <div class="stat-num" id="statLateCount">-</div>
+                        <div class="stat-label">遲到次數</div>
+                    </div>
+                    <div class="stat-card warn">
+                        <div class="stat-num" id="statLateMinutes">-</div>
+                        <div class="stat-label">遲到總分鐘</div>
+                    </div>
+                    <div class="stat-card warn">
+                        <div class="stat-num" id="statMissingDays">-</div>
+                        <div class="stat-label">缺卡天數</div>
+                    </div>
+                </div>
+                <div id="dailyDetailArea">
+                    <p class="no-stats-msg" id="noStatsMsg" style="display:none;">本月尚無出勤記錄</p>
+                    <ul class="daily-detail-list" id="dailyDetailList"></ul>
+                </div>
+            </div>
+
+            <!-- 請假申請與我的假單 (所有角色可見) -->
+            <div class="board-container" id="leaveApplyBlock" style="margin-top: 20px;">
+                <div class="board-title">
+                    <i class="fa-solid fa-file-signature"></i> 請假申請與紀錄
+                </div>
+                
+                <!-- 請假表單 -->
+                <div class="leave-form-container">
+                    <div style="display:grid; grid-template-columns: 1fr; gap: 10px;">
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label>假別</label>
+                            <select id="leaveType" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff; outline:none; box-sizing:border-box;">
+                                <option value="事假">事假</option>
+                                <option value="病假">病假</option>
+                                <option value="特休">特休</option>
+                                <option value="喪假">喪假</option>
+                                <option value="公假">公假</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap: 10px; margin-top: 10px;">
+                        <div class="input-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                            <label>開始時間</label>
+                            <input type="datetime-local" id="leaveStart" style="padding:10px; width: 100%; box-sizing: border-box;">
+                        </div>
+                        <div class="input-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                            <label>結束時間</label>
+                            <input type="datetime-local" id="leaveEnd" style="padding:10px; width: 100%; box-sizing: border-box;">
+                        </div>
+                    </div>
+                    <div class="input-group" style="margin-top: 10px;">
+                        <label>事由 (選填)</label>
+                        <input type="text" id="leaveReason" placeholder="輸入請假原因..." style="padding:10px;">
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:10px;" onclick="submitLeaveRequest()">
+                        送出申請 <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+
+                <!-- 我的假單紀錄 -->
+                <div id="myLeaveListBlock">
+                    <!-- 動態載入個人紀錄 -->
+                </div>
+            </div>
+
+            <!-- 待審核假單 (主管/管理員 Role 1, 2 可見) -->
+            <div class="board-container" id="leaveApprovalBlock" style="margin-top: 20px; display: none;">
+                <div class="board-title">
+                    <i class="fa-solid fa-clipboard-check"></i> 待審核假單
+                </div>
+                <div id="approvalLeaveListBlock">
+                    <!-- 動態載入全體假單(Pending) -->
+                </div>
+            </div>
+
+            <button class="btn btn-logout" onclick="performLogout()" style="margin-top: 24px;">
                 登出系統
             </button>
         </div>
 
+    </div>
+
+    <!-- 編輯員工 Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <h2><i class="fa-solid fa-user-pen"></i> 編輯員工資料</h2>
+            <input type="hidden" id="editUserId">
+            <div class="input-group">
+                <label>電話</label>
+                <input type="tel" id="editPhone" placeholder="例：0912-345-678">
+            </div>
+            <div class="input-group">
+                <label>地址</label>
+                <input type="text" id="editAddress" placeholder="例：台北市信義區...">
+            </div>
+            <div class="input-group">
+                <label>月薪（元）</label>
+                <input type="number" id="editSalary" placeholder="例：40000">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeEditModal()">取消</button>
+                <button class="btn btn-primary" style="flex: 2;" onclick="submitEditUser()"><i class="fa-solid fa-floppy-disk"></i> 儲存</button>
+            </div>
+        </div>
     </div>
 
     <!-- AI 聊天室 -->
@@ -731,16 +1113,37 @@
             document.getElementById('searchStartDate').value = todayStr;
             document.getElementById('searchEndDate').value = todayStr;
 
+            // Set up month picker default (YYYY-MM)
+            const currentYYYYMM = todayStr.substring(0, 7);
+            document.getElementById('monthPicker').value = currentYYYYMM;
+
             const role = localStorage.getItem('role');
             if (role === '1' || role === '2') {
                 document.getElementById('searchTargetEmployeeWrapper').style.display = 'block';
+                // 管理者：顯示員工名冊
+                document.getElementById('staffListContainer').style.display = 'block';
+                document.getElementById('leaveApprovalBlock').style.display = 'block';
+                loadStaffList();
+                loadPendingLeaves();
             } else {
                 document.getElementById('searchTargetEmployeeWrapper').style.display = 'none';
+                document.getElementById('staffListContainer').style.display = 'none';
+                document.getElementById('leaveApprovalBlock').style.display = 'none';
+            }
+
+            // Role 3 員工不顯示薪資欄
+            if (role === '3') {
+                document.getElementById('profileSalaryRow').style.display = 'none';
+            } else {
+                document.getElementById('profileSalaryRow').style.display = 'flex';
             }
             
             // 重新讀取狀態
             loadPersonalStatus();
             loadBoardData();
+            loadMyProfile();
+            loadMonthlySummary();
+            loadMyLeaves();
         }
 
         // --- Dashboard 資料載入 ---
@@ -987,6 +1390,300 @@
             if (e.key === 'Enter') {
                 sendChatMessage();
             }
+        });
+
+        // --- 員工名冊 (Role 1/2) ---
+        async function loadStaffList() {
+            const u = localStorage.getItem('username');
+            try {
+                const res = await fetch(`/api/users?username=${encodeURIComponent(u)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                renderStaffTable(data);
+            } catch(e) { console.error(e); }
+        }
+
+        function renderStaffTable(users) {
+            const tbody = document.getElementById('staffTableBody');
+            tbody.innerHTML = '';
+            const roleLabels = { 1: '🔑 管理員', 2: '👔 主管', 3: '👤 員工' };
+            users.forEach(u => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${u.employee_name}</td>
+                    <td style="color:#a0a0b0">${u.username}</td>
+                    <td>${u.phone || '<span style="color:#555">未填</span>'}</td>
+                    <td>${u.salary ? '$' + u.salary.toLocaleString() : '<span style="color:#555">未設定</span>'}</td>
+                    <td>${roleLabels[u.role] || u.role}</td>
+                    <td><button class="btn-edit-sm" onclick="openEditModal(${u.id},'${u.phone||''}','${u.address||''}','${u.salary||''}')">
+                        <i class="fa-solid fa-pen"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- 出勤統計 ---
+        document.getElementById('monthPicker').addEventListener('change', () => {
+            loadMonthlySummary();
+        });
+
+        async function loadMonthlySummary() {
+            const u = localStorage.getItem('username');
+            const monthVal = document.getElementById('monthPicker').value; // format: "YYYY-MM"
+            if (!monthVal) return;
+            const [year, month] = monthVal.split('-');
+
+            try {
+                const res = await fetch(`/api/attendance/summary?username=${encodeURIComponent(u)}&year=${year}&month=${month}`);
+                if (!res.ok) {
+                    showNotification("無法載入出勤統計", true);
+                    return;
+                }
+                const data = await res.json();
+                
+                document.getElementById('statWorkDays').textContent = data.work_days;
+                document.getElementById('statLateCount').textContent = data.late_count;
+                document.getElementById('statLateMinutes').textContent = data.total_late_minutes;
+                document.getElementById('statMissingDays').textContent = data.missing_checkin_days + data.missing_checkout_days;
+
+                renderDailyDetails(data.daily_details);
+
+            } catch(e) { console.error(e); }
+        }
+
+        function renderDailyDetails(details) {
+            const list = document.getElementById('dailyDetailList');
+            const noDataMsg = document.getElementById('noStatsMsg');
+            list.innerHTML = '';
+            
+            if (!details || details.length === 0) {
+                noDataMsg.style.display = 'block';
+                return;
+            }
+            noDataMsg.style.display = 'none';
+
+            details.forEach(d => {
+                const li = document.createElement('li');
+                let classNames = [];
+                let badges = [];
+
+                if (d.is_late) {
+                    classNames.push('late');
+                    badges.push(`<span class="detail-badge badge-late">遲到 ${d.late_minutes} 分</span>`);
+                }
+                if (d.is_missing_checkin) {
+                    classNames.push('missing');
+                    badges.push(`<span class="detail-badge badge-missing">漏打上班卡</span>`);
+                }
+                if (d.is_missing_checkout && !d.is_missing_checkin) {
+                    classNames.push('missing');
+                    badges.push(`<span class="detail-badge badge-missing">漏打下班卡</span>`);
+                }
+                if (badges.length === 0) {
+                    badges.push(`<span class="detail-badge badge-ok">正常</span>`);
+                }
+
+                li.className = classNames.join(' ');
+                
+                // 格式化時間，去掉秒數
+                const inTime = d.check_in_time ? d.check_in_time.substring(0, 5) : '--:--';
+                const outTime = d.check_out_time ? d.check_out_time.substring(0, 5) : '--:--';
+
+                li.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span class="detail-date">${d.date.substring(5)}</span>
+                        <span class="detail-time">${inTime} ~ ${outTime}</span>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        ${badges.join('')}
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // --- 請假系統 ---
+        async function submitLeaveRequest() {
+            const u = localStorage.getItem('username');
+            const type = document.getElementById('leaveType').value;
+            const start = document.getElementById('leaveStart').value;
+            const end = document.getElementById('leaveEnd').value;
+            const reason = document.getElementById('leaveReason').value;
+
+            if (!start || !end) {
+                showNotification("必須填寫開始與結束時間", true);
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/leave?username=${encodeURIComponent(u)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ leave_type: type, start_time: start, end_time: end, reason: reason })
+                });
+                if (res.ok) {
+                    showNotification("請假單已送出，等待審核中");
+                    // 清空表單
+                    document.getElementById('leaveStart').value = '';
+                    document.getElementById('leaveEnd').value = '';
+                    document.getElementById('leaveReason').value = '';
+                    loadMyLeaves(); // 重新整理列表
+                } else {
+                    const data = await res.json();
+                    showNotification(data.detail || "送出失敗", true);
+                }
+            } catch(e) {
+                showNotification("連線錯誤", true);
+            }
+        }
+
+        async function loadMyLeaves() {
+            const u = localStorage.getItem('username');
+            try {
+                const res = await fetch(`/api/leave?username=${encodeURIComponent(u)}`);
+                if (!res.ok) return;
+                const leaves = await res.json();
+                
+                const block = document.getElementById('myLeaveListBlock');
+                block.innerHTML = '';
+                if(leaves.length === 0) {
+                    block.innerHTML = '<p class="no-stats-msg">目前沒有假單紀錄</p>';
+                    return;
+                }
+
+                leaves.forEach(l => {
+                    let statusClass = "status-pending";
+                    let statusText = "待審核";
+                    if (l.status === 'approved') { statusClass = 'status-approved'; statusText = '已同意'; }
+                    if (l.status === 'rejected') { statusClass = 'status-rejected'; statusText = '已拒絕'; }
+
+                    const div = document.createElement('div');
+                    div.className = 'leave-list-item';
+                    div.innerHTML = `
+                        <div class="leave-list-item-header">
+                            <strong>${l.leave_type}</strong>
+                            <span class="leave-status ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="leave-dates"><i class="fa-regular fa-clock"></i> ${l.start_time.replace('T', ' ')} ~ ${l.end_time.replace('T', ' ')}</div>
+                        <div class="leave-reason"><i class="fa-solid fa-note-sticky"></i> ${l.reason || '無事由'}</div>
+                    `;
+                    block.appendChild(div);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadPendingLeaves() {
+            const u = localStorage.getItem('username');
+            try {
+                const res = await fetch(`/api/leave?username=${encodeURIComponent(u)}`);
+                if (!res.ok) return;
+                const leaves = await res.json();
+                
+                const block = document.getElementById('approvalLeaveListBlock');
+                block.innerHTML = '';
+                const pendingLeaves = leaves.filter(l => l.status === 'pending');
+                
+                if(pendingLeaves.length === 0) {
+                    block.innerHTML = '<p class="no-stats-msg">目前沒有待審核假單</p>';
+                    return;
+                }
+
+                pendingLeaves.forEach(l => {
+                    const div = document.createElement('div');
+                    div.className = 'leave-list-item';
+                    div.innerHTML = `
+                        <div class="leave-list-item-header">
+                            <strong>${l.employee_name} - ${l.leave_type}</strong>
+                            <span class="leave-status status-pending">待審核</span>
+                        </div>
+                        <div class="leave-dates"><i class="fa-regular fa-clock"></i> ${l.start_time.replace('T', ' ')} ~ ${l.end_time.replace('T', ' ')}</div>
+                        <div class="leave-reason"><i class="fa-solid fa-note-sticky"></i> ${l.reason || '無事由'}</div>
+                        <div class="leave-actions">
+                            <button class="btn-approve" onclick="updateLeaveStatus(${l.id}, 'approved')"><i class="fa-solid fa-check"></i> 同意</button>
+                            <button class="btn-reject" onclick="updateLeaveStatus(${l.id}, 'rejected')"><i class="fa-solid fa-xmark"></i> 拒絕</button>
+                        </div>
+                    `;
+                    block.appendChild(div);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function updateLeaveStatus(id, newStatus) {
+            const u = localStorage.getItem('username');
+            try {
+                const res = await fetch(`/api/leave/${id}/status?username=${encodeURIComponent(u)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (res.ok) {
+                    showNotification(newStatus === 'approved' ? "已同意該假單" : "已拒絕該假單");
+                    loadPendingLeaves();
+                } else {
+                    const data = await res.json();
+                    showNotification(data.detail || "操作失敗", true);
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // --- 個人資料 ---
+        async function loadMyProfile() {
+            const u = localStorage.getItem('username');
+            const role = localStorage.getItem('role');
+            try {
+                const res = await fetch(`/api/users/me?username=${encodeURIComponent(u)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                document.getElementById('profileName').textContent = data.employee_name;
+                document.getElementById('profilePhone').textContent = data.phone || '（未填寫）';
+                document.getElementById('profileAddress').textContent = data.address || '（未填寫）';
+                document.getElementById('profileSalary').textContent = data.salary ? '$' + data.salary.toLocaleString() + ' 元' : '（未設定）';
+            } catch(e) { console.error(e); }
+        }
+
+        // --- Modal 相關 ---
+        function openEditModal(id, phone, address, salary) {
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editPhone').value = phone;
+            document.getElementById('editAddress').value = address;
+            document.getElementById('editSalary').value = salary;
+            document.getElementById('editModal').classList.add('open');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('open');
+        }
+
+        async function submitEditUser() {
+            const id = document.getElementById('editUserId').value;
+            const u = localStorage.getItem('username');
+            const payload = {
+                phone: document.getElementById('editPhone').value || null,
+                address: document.getElementById('editAddress').value || null,
+                salary: document.getElementById('editSalary').value ? parseInt(document.getElementById('editSalary').value) : null
+            };
+            try {
+                const res = await fetch(`/api/users/${id}?username=${encodeURIComponent(u)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    showNotification('員工資料已更新！');
+                    closeEditModal();
+                    loadStaffList();
+                } else {
+                    const err = await res.json();
+                    showNotification(err.detail || '更新失敗', true);
+                }
+            } catch(e) {
+                showNotification('連線錯誤', true);
+            }
+        }
+
+        // 點擊 overlay 空白處關閉 Modal
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
         });
     </script>
 </body>
