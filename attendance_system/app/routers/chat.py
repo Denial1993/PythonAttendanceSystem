@@ -57,7 +57,7 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
 """
 
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-3.1-flash-lite-preview")
         response = model.generate_content(prompt)
         return {"reply": response.text.strip()} 
     except Exception as e:
