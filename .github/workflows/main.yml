@@ -1,0 +1,39 @@
+name: Deploy to GHCR
+
+# 當有人 push 到 main 分支時觸發
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    # 給予 GitHub Token 推送 Image 的權限
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: 取得程式碼
+        uses: actions/checkout@v4
+
+      - name: 登入 GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 將你的 GitHub 帳號與儲存庫名稱轉小寫 (Docker 規定)
+        id: string
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ github.repository }}
+
+      - name: 建立並推送到雲端倉庫
+        uses: docker/build-push-action@v5
+        with:
+          context: ./attendance_system   # 👈 告訴它去這個子資料夾裡面找 Dockerfile
+          push: true
+          # 這裡會自動生成像是 ghcr.io/你的帳號/你的專案:latest
+          tags: ghcr.io/${{ steps.string.outputs.lowercase }}:latest

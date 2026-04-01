@@ -5,7 +5,15 @@ from typing import List
 from app.database import get_db
 from app.models import User
 from app.schemas import UserResponse, UserProfileUpdate
+from pydantic import BaseModel
 
+# 定義前端傳過來的資料格式 (DTO)
+class UserUpdateRequest(BaseModel):
+    username: str
+    phone: str = None
+    address: str = None
+    salary: int = None  # 👈 新增這行：允許接收薪水資料
+    
 router = APIRouter()
 
 def _get_current_user_by_username(username: str, db: Session) -> User:
@@ -30,14 +38,40 @@ def list_all_users(username: str, db: Session = Depends(get_db)):
         )
     return db.query(User).order_by(User.id).all()
 
-
-@router.get("/me", response_model=UserResponse)
+@router.get("/me")
 def get_my_profile(username: str, db: Session = Depends(get_db)):
-    """
-    取得目前登入員工自己的個人詳細資料。
-    任一登入角色皆可使用。
-    """
-    return _get_current_user_by_username(username, db)
+    """讀取自己的個人資料"""
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="找不到此使用者")
+    
+    return {
+        "employee_name": user.employee_name, 
+        "phone": user.phone, 
+        "address": user.address, 
+        "salary": user.salary
+    }
+
+@router.put("/me")
+def update_my_profile(request: UserUpdateRequest, db: Session = Depends(get_db)):
+    # 1. 去資料庫找這個人
+    user = db.query(User).filter(User.username == request.username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="找不到此使用者")
+
+    # 2. 更新資料
+    if request.phone is not None:
+        user.phone = request.phone
+    if request.address is not None:
+        user.address = request.address
+    if request.salary is not None:        # 👈 新增這兩行：把薪水存進資料庫
+        user.salary = request.salary
+
+    # 3. 存檔回資料庫
+    db.commit()
+    db.refresh(user)
+
+    return {"message": "個人資料更新成功", "phone": user.phone, "address": user.address, "salary": user.salary}
 
 
 @router.put("/{user_id}", response_model=UserResponse)
