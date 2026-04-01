@@ -16,6 +16,7 @@ RUN apt-get update \
 # 複製 requirements.txt 並安裝 Python 套件
 COPY requirements.txt /code/
 RUN pip install --no-cache-dir -r requirements.txt
-
+# 記得要把所有程式碼搬進去啊！
+COPY . /code/
 # 設定啟動指令，這裡預設執行 FastAPI 應用程式
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
