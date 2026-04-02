@@ -618,7 +618,8 @@
 
     {% include 'footer.html' %}
 
-    {% block scripts %}{% endblock %}
+    {# 外部 JS：從 inline 移出，避免 CSP 封鎖問題 #}
+    <script src="/static/main.js"></script>
 </body>
 
 </html>
