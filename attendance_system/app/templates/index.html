@@ -212,13 +212,22 @@
 <script>
     let currentEmployeeName = localStorage.getItem('employee_name');
 
-    window.onload = function () {
+    // ✅ 改用 DOMContentLoaded，確保所有 include 的 HTML 片段（navbar.html 等）都已載入
+    document.addEventListener('DOMContentLoaded', function () {
+        // 初始化 chatInput 鍵盤事件（必須在 DOM ready 後才能綁定）
+        const chatInputEl = document.getElementById('chatInput');
+        if (chatInputEl) {
+            chatInputEl.addEventListener('keypress', e => {
+                if (e.key === 'Enter') sendChatMessage();
+            });
+        }
+
         if (currentEmployeeName) {
             setupDashboardAuth();
         } else {
             switchSection('authView');
         }
-    };
+    });
 
     function showNotification(message, isError = false) {
         const notif = document.getElementById('notification');
@@ -233,17 +242,24 @@
         document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
 
+        // ✅ 加入 null 防護，避免 navbar.html 的元素找不到時整個 JS 崩潰
+        const navMenu = document.getElementById('navMenu');
+        const navUser = document.getElementById('navUser');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+
         if (sectionId === 'authView') {
-            document.getElementById('authView').classList.add('active');
-            document.getElementById('navMenu').style.display = 'none';
-            document.getElementById('navUser').style.display = 'none';
-            document.getElementById('mobileMenuBtn').style.display = 'none';
+            const authView = document.getElementById('authView');
+            if (authView) authView.classList.add('active');
+            if (navMenu) navMenu.style.display = 'none';
+            if (navUser) navUser.style.display = 'none';
+            if (mobileMenuBtn) mobileMenuBtn.style.display = 'none';
         } else {
-            document.getElementById('section-' + sectionId).classList.add('active');
+            const sectionEl = document.getElementById('section-' + sectionId);
+            if (sectionEl) sectionEl.classList.add('active');
             const activeLink = document.querySelector(`.nav-link[onclick="switchSection('${sectionId}')"]`);
             if (activeLink) activeLink.classList.add('active');
 
-            document.getElementById('navMenu').classList.remove('show');
+            if (navMenu) navMenu.classList.remove('show');
 
             if (sectionId === 'home') { loadPersonalStatus(); loadBoardData(); }
             if (sectionId === 'stats') { loadMyProfile(); loadMonthlySummary(); }
@@ -257,29 +273,44 @@
     }
 
     function setupDashboardAuth() {
-        document.getElementById('navMenu').style.display = '';
-        document.getElementById('navUser').style.display = '';
-        document.getElementById('mobileMenuBtn').style.display = '';
-        document.getElementById('displayEmployeeName').textContent = currentEmployeeName;
+        // ✅ 加入 null 防護，防止 navbar.html include 的元素找不到時崩潰
+        const navMenu = document.getElementById('navMenu');
+        const navUser = document.getElementById('navUser');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const displayName = document.getElementById('displayEmployeeName');
+
+        if (navMenu) navMenu.style.display = '';
+        if (navUser) navUser.style.display = '';
+        if (mobileMenuBtn) mobileMenuBtn.style.display = '';
+        if (displayName) displayName.textContent = currentEmployeeName;
 
         const role = localStorage.getItem('role');
+        const navStaffList = document.getElementById('navStaffList');
+        const searchTarget = document.getElementById('searchTargetEmployee');
+        const leaveApprovalBlock = document.getElementById('leaveApprovalBlock');
+        const everyoneBoard = document.getElementById('everyoneBoardContainer');
+        const profileSalaryRow = document.getElementById('profileSalaryRow');
+
         if (role === '1' || role === '2') {
-            document.getElementById('navStaffList').style.display = 'block';
-            document.getElementById('searchTargetEmployee').style.display = 'block';
-            document.getElementById('leaveApprovalBlock').style.display = 'block';
-            document.getElementById('everyoneBoardContainer').style.display = 'block';
+            if (navStaffList) navStaffList.style.display = 'block';
+            if (searchTarget) searchTarget.style.display = 'block';
+            if (leaveApprovalBlock) leaveApprovalBlock.style.display = 'block';
+            if (everyoneBoard) everyoneBoard.style.display = 'block';
         } else {
-            document.getElementById('navStaffList').style.display = 'none';
-            document.getElementById('searchTargetEmployee').style.display = 'none';
-            document.getElementById('leaveApprovalBlock').style.display = 'none';
-            document.getElementById('everyoneBoardContainer').style.display = 'none';
-            document.getElementById('profileSalaryRow').style.display = 'none';
+            if (navStaffList) navStaffList.style.display = 'none';
+            if (searchTarget) searchTarget.style.display = 'none';
+            if (leaveApprovalBlock) leaveApprovalBlock.style.display = 'none';
+            if (everyoneBoard) everyoneBoard.style.display = 'none';
+            if (profileSalaryRow) profileSalaryRow.style.display = 'none';
         }
 
         const todayStr = new Date().toLocaleDateString('en-CA');
-        document.getElementById('searchStartDate').value = todayStr;
-        document.getElementById('searchEndDate').value = todayStr;
-        document.getElementById('monthPicker').value = todayStr.substring(0, 7);
+        const searchStart = document.getElementById('searchStartDate');
+        const searchEnd = document.getElementById('searchEndDate');
+        const monthPicker = document.getElementById('monthPicker');
+        if (searchStart) searchStart.value = todayStr;
+        if (searchEnd) searchEnd.value = todayStr;
+        if (monthPicker) monthPicker.value = todayStr.substring(0, 7);
 
         switchSection('home');
     }
@@ -403,8 +434,11 @@
         } catch (e) { }
     }
 
-    function toggleChat() { document.getElementById('chatPanel').classList.toggle('open'); }
-    document.getElementById('chatInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendChatMessage(); });
+    function toggleChat() {
+        const chatPanel = document.getElementById('chatPanel');
+        if (chatPanel) chatPanel.classList.toggle('open');
+    }
+    // ✅ chatInput 的 keypress 事件已移到 DOMContentLoaded 中統一初始化（見頂部）
 
     // API Stubs
     // 控制是否在編輯模式的開關
