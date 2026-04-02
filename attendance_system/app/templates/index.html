@@ -312,6 +312,43 @@
         } catch (err) { showNotification("連線錯誤", true); }
     }
 
+    async function performRegister() {
+        // 1. 抓取 HTML 輸入框的值 (對應你截圖中的 id)
+        const username = document.getElementById('regUsername').value;
+        const password = document.getElementById('regPassword').value;
+        const employeeName = document.getElementById('regEmployeeName').value;
+
+        if (!username || !password || !employeeName) {
+            alert("請填寫所有欄位！");
+            return;
+        }
+
+        try {
+            // 2. 發送請求到你的 FastAPI 後端 (假設路徑是 /api/auth/register)
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    employee_name: employeeName  // 這裡要對應你後端 schemas.py 的欄位名
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("註冊成功！請登入。");
+                switchAuthTab(0); // 切換回登入頁籤
+            } else {
+                alert("註冊失敗：" + (data.detail || "未知錯誤"));
+            }
+        } catch (error) {
+            console.error("發生錯誤:", error);
+            alert("連線伺服器失敗！");
+        }
+    }
+
     function performLogout() {
         localStorage.clear();
         currentEmployeeName = null;
