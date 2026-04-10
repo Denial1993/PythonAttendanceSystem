@@ -8,8 +8,8 @@
         <h1>歡迎使用</h1>
         <p class="subtitle">請先登入系統以進行操作</p>
         <div class="auth-tabs">
-            <div class="auth-tab active" id="tab0" onclick="switchAuthTab(0)">登入</div>
-            <div class="auth-tab" id="tab1" onclick="switchAuthTab(1)">註冊</div>
+            <div class="auth-tab active" id="tab0">登入</div>
+            <div class="auth-tab" id="tab1">註冊</div>
         </div>
         <div id="loginForm">
             <div class="input-group">
@@ -20,7 +20,7 @@
                 <label><i class="fa-solid fa-lock"></i> 密碼</label>
                 <input type="password" id="loginPassword" placeholder="請輸入密碼">
             </div>
-            <button class="btn btn-primary" onclick="performLogin()">登入進系統</button>
+            <button class="btn btn-primary" id="btnLogin">登入進系統</button>
         </div>
         <div id="registerForm" style="display: none;">
             <div class="input-group">
@@ -35,7 +35,7 @@
                 <label>真實姓名</label>
                 <input type="text" id="regEmployeeName">
             </div>
-            <button class="btn btn-primary" onclick="performRegister()">註冊帳號</button>
+            <button class="btn btn-primary" id="btnRegister">註冊帳號</button>
         </div>
     </div>
 

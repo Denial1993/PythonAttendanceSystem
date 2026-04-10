@@ -7,6 +7,16 @@ let currentEmployeeName = localStorage.getItem('employee_name');
 
 // ✅ 使用 DOMContentLoaded，確保所有 include 的 HTML 片段都已載入後再執行
 document.addEventListener('DOMContentLoaded', function () {
+    // 綁定認證相關按鈕事件 (取代 HTML onclick 避免 CSP 封鎖)
+    const tab0 = document.getElementById('tab0');
+    if (tab0) tab0.addEventListener('click', () => switchAuthTab(0));
+    const tab1 = document.getElementById('tab1');
+    if (tab1) tab1.addEventListener('click', () => switchAuthTab(1));
+    const btnLogin = document.getElementById('btnLogin');
+    if (btnLogin) btnLogin.addEventListener('click', performLogin);
+    const btnRegister = document.getElementById('btnRegister');
+    if (btnRegister) btnRegister.addEventListener('click', performRegister);
+
     // 初始化 chatInput 鍵盤事件
     const chatInputEl = document.getElementById('chatInput');
     if (chatInputEl) {
