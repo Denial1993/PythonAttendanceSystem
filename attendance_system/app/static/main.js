@@ -63,6 +63,7 @@ function switchSection(sectionId) {
         if (sectionId === 'stats') { loadMyProfile(); loadMonthlySummary(); }
         if (sectionId === 'leave') { loadMyLeaves(); loadPendingLeaves(); }
         if (sectionId === 'staff') { loadStaffList(); }
+        if (sectionId === 'settings') { loadSystemSettings(); }
     }
 }
 
@@ -88,6 +89,7 @@ function setupDashboardAuth() {
     const leaveApprovalBlock = document.getElementById('leaveApprovalBlock');
     const everyoneBoard = document.getElementById('everyoneBoardContainer');
     const profileSalaryRow = document.getElementById('profileSalaryRow');
+    const navSystemSettings = document.getElementById('navSystemSettings');
 
     if (role === '1' || role === '2') {
         if (navStaffList) navStaffList.style.display = 'block';
@@ -100,6 +102,12 @@ function setupDashboardAuth() {
         if (leaveApprovalBlock) leaveApprovalBlock.style.display = 'none';
         if (everyoneBoard) everyoneBoard.style.display = 'none';
         if (profileSalaryRow) profileSalaryRow.style.display = 'none';
+    }
+    
+    if (role === '1') {
+        if (navSystemSettings) navSystemSettings.style.display = 'block';
+    } else {
+        if (navSystemSettings) navSystemSettings.style.display = 'none';
     }
 
     const todayStr = new Date().toLocaleDateString('en-CA');
@@ -197,12 +205,13 @@ function performLogout() {
 // --------------------------------------------------------
 // 打卡 API
 // --------------------------------------------------------
-async function performAction(action) {
+async function sendCheckInRequest(action, lat, lng) {
     try {
-        const res = await fetch(
-            `/api/attendance/?employee_name=${encodeURIComponent(currentEmployeeName)}&action=${encodeURIComponent(action)}`,
-            { method: 'POST', headers: { 'Content-Type': 'application/json' } }
-        );
+        let url = `/api/attendance/?employee_name=${encodeURIComponent(currentEmployeeName)}&action=${encodeURIComponent(action)}`;
+        if (lat !== null && lng !== null) {
+            url += `&lat=${lat}&lng=${lng}`;
+        }
+        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
         const data = await res.json();
         if (res.ok) {
             showNotification(`成功打卡：${action}`);
@@ -214,6 +223,43 @@ async function performAction(action) {
     } catch (e) {
         showNotification("連線錯誤", true);
     }
+}
+
+async function performAction(action) {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    if (!navigator.geolocation) {
+        if (isLocalhost) {
+            showNotification("開發環境無定位支援：直接打卡", false);
+            return sendCheckInRequest(action, null, null);
+        }
+        showNotification("您的瀏覽器不支援地理位置定位", true);
+        return;
+    }
+
+    // 顯示取得位置中的提示
+    showNotification("正在獲取GPS定位以進行打卡...", false);
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            sendCheckInRequest(action, lat, lng);
+        },
+        (error) => {
+            if (isLocalhost) {
+                showNotification("測試環境無法定位：已略過並直接打卡", false);
+                return sendCheckInRequest(action, null, null);
+            }
+
+            let errorMsg = "無法獲取位置，打卡失敗";
+            if (error.code === error.PERMISSION_DENIED) {
+                errorMsg = "您已拒絕位置授權，請開啟定位權限才能打卡";
+            }
+            showNotification(errorMsg, true);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
 }
 
 async function loadPersonalStatus() {
@@ -239,11 +285,60 @@ async function loadBoardData() {
         const data = await res.json();
         const list = document.getElementById('boardList');
         if (list) {
-            list.innerHTML = data.map(r =>
-                `<div class="board-item"><span>${r.employee_name}</span> <span class="status-work">${r.status} ${r.check_in_time?.substring(0, 5) || ''}</span></div>`
-            ).join('');
+            list.innerHTML = data.map(r => {
+                let mapBtnStr = '';
+                if (localStorage.getItem('role') === '1') {
+                    if (r.check_in_lat && r.check_in_lng) {
+                        mapBtnStr += ` <i class="fa fa-map-marker-alt" style="cursor:pointer;color:#4ade80;" title="上班位置" onclick="openMapModal(${r.check_in_lat}, ${r.check_in_lng}, '${r.employee_name} 上班打卡地點')"></i>`;
+                    }
+                    if (r.check_out_lat && r.check_out_lng) {
+                        mapBtnStr += ` <i class="fa fa-map-marker-alt" style="cursor:pointer;color:#f87171;" title="下班位置" onclick="openMapModal(${r.check_out_lat}, ${r.check_out_lng}, '${r.employee_name} 下班打卡地點')"></i>`;
+                    }
+                }
+                return `<div class="board-item"><span>${r.employee_name}</span> <span class="status-work">${r.status} ${r.check_in_time?.substring(0, 5) || ''}${mapBtnStr}</span></div>`;
+            }).join('');
         }
     } catch (e) { }
+}
+
+// --------------------------------------------------------
+// 地圖 Modal
+// --------------------------------------------------------
+let mapInstance = null;
+let currentMarker = null;
+
+function openMapModal(lat, lng, titleStr) {
+    const modal = document.getElementById('mapModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        // 延遲初始化以確保容器顯示後才產生地圖
+        setTimeout(() => {
+            if (!mapInstance) {
+                mapInstance = L.map('leafletMap').setView([lat, lng], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(mapInstance);
+            } else {
+                mapInstance.setView([lat, lng], 16);
+                mapInstance.invalidateSize();
+            }
+            
+            if (currentMarker) {
+                mapInstance.removeLayer(currentMarker);
+            }
+            
+            currentMarker = L.marker([lat, lng]).addTo(mapInstance)
+                .bindPopup(titleStr || "打卡位置")
+                .openPopup();
+                
+        }, 200);
+    }
+}
+
+function closeMapModal() {
+    const modal = document.getElementById('mapModal');
+    if (modal) modal.style.display = 'none';
 }
 
 // --------------------------------------------------------
@@ -362,3 +457,54 @@ async function loadMyLeaves() { }
 async function loadPendingLeaves() { }
 async function performSearch() { }
 async function submitLeaveRequest() { }
+
+// --------------------------------------------------------
+// 系統設定
+// --------------------------------------------------------
+async function loadSystemSettings() {
+    try {
+        const res1 = await fetch(`/api/settings/company_base_lat`);
+        if (res1.ok) {
+            const data = await res1.json();
+            document.getElementById('settingLat').value = data.setting_value || '';
+        }
+        const res2 = await fetch(`/api/settings/company_base_lng`);
+        if (res2.ok) {
+            const data = await res2.json();
+            document.getElementById('settingLng').value = data.setting_value || '';
+        }
+    } catch(e) {}
+}
+
+async function saveSystemSettings() {
+    const lat = document.getElementById('settingLat').value;
+    const lng = document.getElementById('settingLng').value;
+    const username = localStorage.getItem('username');
+    
+    if(!lat || !lng) {
+        showNotification("經緯度不能為空", true);
+        return;
+    }
+    
+    try {
+        const res1 = await fetch(`/api/settings/company_base_lat?username=${username}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({setting_value: lat})
+        });
+        
+        const res2 = await fetch(`/api/settings/company_base_lng?username=${username}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({setting_value: lng})
+        });
+        
+        if (res1.ok && res2.ok) {
+            showNotification("座標設定已儲存");
+        } else {
+            showNotification("儲存失敗，請檢查權限", true);
+        }
+    } catch(e) {
+        showNotification("連線錯誤", true);
+    }
+}

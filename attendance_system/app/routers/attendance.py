@@ -17,7 +17,7 @@ WORK_START_HOUR = 9
 WORK_START_MINUTE = 0
 
 @router.post("/", response_model=AttendanceSchema)
-def check_in_or_update(employee_name: str, action: str, db: Session = Depends(get_db)):
+def check_in_or_update(employee_name: str, action: str, lat: Optional[float] = None, lng: Optional[float] = None, db: Session = Depends(get_db)):
     """
     更新或建立當日的打卡紀錄
     action 可為: 上班, 吃午餐, 午餐回來, 下班
@@ -44,6 +44,8 @@ def check_in_or_update(employee_name: str, action: str, db: Session = Depends(ge
             employee_name=employee_name,
             date=today,
             check_in_time=now_time,
+            check_in_lat=lat,
+            check_in_lng=lng,
             status="上班中"
         )
         db.add(record)
@@ -70,6 +72,8 @@ def check_in_or_update(employee_name: str, action: str, db: Session = Depends(ge
         if record.check_out_time:
             raise HTTPException(status_code=400, detail="已經打過下班卡了！辛苦了！")
         record.check_out_time = now_time
+        record.check_out_lat = lat
+        record.check_out_lng = lng
         record.status = "已下班"
     else:
         raise HTTPException(status_code=400, detail="未知的打卡動作")

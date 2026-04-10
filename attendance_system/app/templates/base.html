@@ -7,6 +7,10 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Leaflet JS & CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
     <style>
         :root {
@@ -604,6 +608,45 @@
             border: 1px solid var(--glass-border);
             outline: none;
         }
+
+        /* Map Modal */
+        .map-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .map-modal-content {
+            background: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--glass-border);
+        }
+        .map-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .map-modal-close {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--text-light);
+        }
+        #leafletMap {
+            flex: 1;
+            border-radius: 8px;
+            background: #e5e5e5;
+        }
     </style>
 </head>
 
@@ -618,8 +661,19 @@
 
     {% include 'footer.html' %}
 
+    <!-- Map Modal -->
+    <div class="map-modal" id="mapModal">
+        <div class="map-modal-content">
+            <div class="map-modal-header">
+                <h3 style="margin:0;">打卡地點檢視</h3>
+                <div class="map-modal-close" onclick="closeMapModal()"><i class="fas fa-times"></i></div>
+            </div>
+            <div id="leafletMap"></div>
+        </div>
+    </div>
+
     {# 外部 JS：從 inline 移出，避免 CSP 封鎖問題 #}
-    <script src="/static/main.js"></script>
+    <script src="/static/main.js?v=2.0"></script>
 </body>
 
 </html>

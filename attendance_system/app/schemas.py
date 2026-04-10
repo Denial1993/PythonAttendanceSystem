@@ -44,6 +44,10 @@ class Attendance(AttendanceBase):
     lunch_out_time: Optional[time] = None
     lunch_in_time: Optional[time] = None
     check_out_time: Optional[time] = None
+    check_in_lat: Optional[float] = None
+    check_in_lng: Optional[float] = None
+    check_out_lat: Optional[float] = None
+    check_out_lng: Optional[float] = None
     status: str
 
     model_config = ConfigDict(from_attributes=True)
@@ -92,3 +96,16 @@ class LeaveRequestResponse(BaseModel):
     updated_at: str
 
     model_config = ConfigDict(from_attributes=True)
+
+# === 系統設定相關 ===
+class SystemSettingsBase(BaseModel):
+    setting_key: str
+    setting_value: Optional[str] = None
+    description: Optional[str] = None
+
+class SystemSettingsResponse(SystemSettingsBase):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+class SystemSettingsUpdate(BaseModel):
+    setting_value: Optional[str] = None

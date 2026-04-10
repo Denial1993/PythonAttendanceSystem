@@ -190,6 +190,23 @@
             </div>
         </div>
     </div>
+
+    <div id="section-settings" class="section-view">
+        <div class="board-container" style="margin-top:0;">
+            <div class="board-title"><i class="fa-solid fa-map-location-dot"></i> 公司基準座標設定</div>
+            <div style="font-size:0.9rem; line-height:2; margin-top:15px;">
+                <div class="input-group">
+                    <label style="color:#d0d0d0; font-size:0.8rem; display:block; margin-bottom:5px;">緯度 (Latitude)：</label>
+                    <input type="number" step="any" id="settingLat" placeholder="例如: 25.0330" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                </div>
+                <div class="input-group">
+                    <label style="color:#d0d0d0; font-size:0.8rem; display:block; margin-bottom:5px;">經度 (Longitude)：</label>
+                    <input type="number" step="any" id="settingLng" placeholder="例如: 121.5654" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                </div>
+                <button class="btn btn-primary" onclick="saveSystemSettings()">儲存座標設定</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="chat-widget">

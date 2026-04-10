@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Time
+from sqlalchemy import Column, Integer, String, Date, Time, Float
 from app.database import Base
 
 class User(Base):
@@ -24,7 +24,19 @@ class Attendance(Base):
     lunch_out_time = Column(Time, nullable=True, comment="午休開始時間")
     lunch_in_time = Column(Time, nullable=True, comment="午休結束時間")
     check_out_time = Column(Time, nullable=True, comment="下班打卡時間")
+    check_in_lat = Column(Float, nullable=True, comment="上班打卡緯度")
+    check_in_lng = Column(Float, nullable=True, comment="上班打卡經度")
+    check_out_lat = Column(Float, nullable=True, comment="下班打卡緯度")
+    check_out_lng = Column(Float, nullable=True, comment="下班打卡經度")
     status = Column(String, default="尚未上班", comment="目前打卡狀態 (例如: 上班中、已下班)")
+
+class SystemSettings(Base):
+    __tablename__ = "system_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    setting_key = Column(String, unique=True, index=True, nullable=False, comment="設定鍵名")
+    setting_value = Column(String, nullable=True, comment="設定值")
+    description = Column(String, nullable=True, comment="說明")
 
 class LeaveRequest(Base):
     __tablename__ = "leave_requests"
