@@ -36,6 +36,7 @@ def check_in_or_update(employee_name: str, action: str, lat: Optional[float] = N
     ).first()
 
     # 如果尚未有紀錄，則只允許「上班」動作
+    status_suffix = " (無定位)" if lat is None and lng is None else ""
     if not record:
         if action != "上班":
             raise HTTPException(status_code=400, detail="今日尚未上班打卡，請先點擊上班！")
@@ -46,7 +47,7 @@ def check_in_or_update(employee_name: str, action: str, lat: Optional[float] = N
             check_in_time=now_time,
             check_in_lat=lat,
             check_in_lng=lng,
-            status="上班中"
+            status="上班中" + status_suffix
         )
         db.add(record)
         db.commit()
@@ -60,21 +61,21 @@ def check_in_or_update(employee_name: str, action: str, lat: Optional[float] = N
         if record.lunch_out_time:
             raise HTTPException(status_code=400, detail="已經打過吃午餐了！")
         record.lunch_out_time = now_time
-        record.status = "午休中"
+        record.status = "午休中" + status_suffix
     elif action == "午餐回來":
         if not record.lunch_out_time:
             raise HTTPException(status_code=400, detail="尚未打吃午餐，無法打午餐回來卡！")
         if record.lunch_in_time:
             raise HTTPException(status_code=400, detail="已經打過午餐回來了！")
         record.lunch_in_time = now_time
-        record.status = "上班中"
+        record.status = "上班中" + status_suffix
     elif action == "下班":
         if record.check_out_time:
             raise HTTPException(status_code=400, detail="已經打過下班卡了！辛苦了！")
         record.check_out_time = now_time
         record.check_out_lat = lat
         record.check_out_lng = lng
-        record.status = "已下班"
+        record.status = "已下班" + status_suffix
     else:
         raise HTTPException(status_code=400, detail="未知的打卡動作")
 

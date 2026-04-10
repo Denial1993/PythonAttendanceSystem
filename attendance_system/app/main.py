@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import os
+import time  # ✅ 新增這行引入 time 模組
 
 from app.database import engine, Base
 from app.routers import attendance, chat, auth, users, leave, settings
@@ -30,5 +31,13 @@ app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    """回傳前端首頁"""
-    return templates.TemplateResponse(request=request, name="index.html")
+    # 確保有 cache_buster 變數，沒有的話補上這行
+    import time
+    cache_buster = int(time.time())
+    
+    # 👇 重點是這行，把 request, name, context 清清楚楚地指派給它！
+    return templates.TemplateResponse(
+        request=request, 
+        name="index.html", 
+        context={"request": request, "version": cache_buster}
+    )

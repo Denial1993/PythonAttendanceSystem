@@ -113,7 +113,7 @@ function setupDashboardAuth() {
         if (everyoneBoard) everyoneBoard.style.display = 'none';
         if (profileSalaryRow) profileSalaryRow.style.display = 'none';
     }
-    
+
     if (role === '1') {
         if (navSystemSettings) navSystemSettings.style.display = 'block';
     } else {
@@ -167,7 +167,7 @@ async function performLogin() {
             showNotification(data.detail, true);
         }
     } catch (err) {
-        showNotification("連線錯誤", true);
+        showNotification("無法連接伺服器，請檢查網路", true);
     }
 }
 
@@ -202,7 +202,7 @@ async function performRegister() {
         }
     } catch (error) {
         console.error("發生錯誤:", error);
-        alert("連線伺服器失敗！");
+        alert("無法連接伺服器，請檢查網路");
     }
 }
 
@@ -228,48 +228,39 @@ async function sendCheckInRequest(action, lat, lng) {
             loadPersonalStatus();
             loadBoardData();
         } else {
-            showNotification(data.detail, true);
+            showNotification(data.detail || "打卡失敗", true);
         }
     } catch (e) {
-        showNotification("連線錯誤", true);
+        showNotification("無法連接伺服器，請檢查網路", true);
     }
 }
 
-async function performAction(action) {
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+function getPositionWithTimeout() {
+    return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+        setTimeout(() => reject(new Error("Timeout")), 5000);
+    });
+}
 
+async function performAction(action) {
     if (!navigator.geolocation) {
-        if (isLocalhost) {
-            showNotification("開發環境無定位支援：直接打卡", false);
-            return sendCheckInRequest(action, null, null);
-        }
-        showNotification("您的瀏覽器不支援地理位置定位", true);
-        return;
+        showNotification("無法獲取定位，將以無座標模式打卡", true);
+        return sendCheckInRequest(action, null, null);
     }
 
-    // 顯示取得位置中的提示
     showNotification("正在獲取GPS定位以進行打卡...", false);
 
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            sendCheckInRequest(action, lat, lng);
-        },
-        (error) => {
-            if (isLocalhost) {
-                showNotification("測試環境無法定位：已略過並直接打卡", false);
-                return sendCheckInRequest(action, null, null);
-            }
-
-            let errorMsg = "無法獲取位置，打卡失敗";
-            if (error.code === error.PERMISSION_DENIED) {
-                errorMsg = "您已拒絕位置授權，請開啟定位權限才能打卡";
-            }
-            showNotification(errorMsg, true);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+    try {
+        const position = await getPositionWithTimeout();
+        sendCheckInRequest(action, position.coords.latitude, position.coords.longitude);
+    } catch (error) {
+        showNotification("無法獲取定位，將以無座標模式打卡", true);
+        sendCheckInRequest(action, null, null);
+    }
 }
 
 async function loadPersonalStatus() {
@@ -333,15 +324,15 @@ function openMapModal(lat, lng, titleStr) {
                 mapInstance.setView([lat, lng], 16);
                 mapInstance.invalidateSize();
             }
-            
+
             if (currentMarker) {
                 mapInstance.removeLayer(currentMarker);
             }
-            
+
             currentMarker = L.marker([lat, lng]).addTo(mapInstance)
                 .bindPopup(titleStr || "打卡位置")
                 .openPopup();
-                
+
         }, 200);
     }
 }
@@ -434,7 +425,7 @@ async function saveProfile() {
             showNotification(data.detail || "更新失敗", true);
         }
     } catch (e) {
-        showNotification("連線錯誤", true);
+        showNotification("無法連接伺服器，請檢查網路", true);
     }
 }
 
@@ -483,38 +474,38 @@ async function loadSystemSettings() {
             const data = await res2.json();
             document.getElementById('settingLng').value = data.setting_value || '';
         }
-    } catch(e) {}
+    } catch (e) { }
 }
 
 async function saveSystemSettings() {
     const lat = document.getElementById('settingLat').value;
     const lng = document.getElementById('settingLng').value;
     const username = localStorage.getItem('username');
-    
-    if(!lat || !lng) {
+
+    if (!lat || !lng) {
         showNotification("經緯度不能為空", true);
         return;
     }
-    
+
     try {
         const res1 = await fetch(`/api/settings/company_base_lat?username=${username}`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({setting_value: lat})
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ setting_value: lat })
         });
-        
+
         const res2 = await fetch(`/api/settings/company_base_lng?username=${username}`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({setting_value: lng})
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ setting_value: lng })
         });
-        
+
         if (res1.ok && res2.ok) {
             showNotification("座標設定已儲存");
         } else {
             showNotification("儲存失敗，請檢查權限", true);
         }
-    } catch(e) {
-        showNotification("連線錯誤", true);
+    } catch (e) {
+        showNotification("無法連接伺服器，請檢查網路", true);
     }
 }
