@@ -24,11 +24,17 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="此帳號已被註冊")
     
     hashed_password = get_password_hash(user.password)
+    assigned_role = 3
+    if user.username.upper().startswith("AD"):
+        assigned_role = 1
+    elif user.username.upper().startswith("MA"):
+        assigned_role = 2
+    
     new_user = User(
         username=user.username,
         password_hash=hashed_password,
         employee_name=user.employee_name,
-        role=3
+        role=assigned_role
     )
     db.add(new_user)
     db.commit()
