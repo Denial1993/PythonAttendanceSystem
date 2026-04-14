@@ -1,19 +1,21 @@
 import os
-import google.generativeai as genai
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Attendance
+from google import genai # 確認安裝的是 google-genai 套件
 
 router = APIRouter()
 
-# 設定 Gemini API Key
+# 1. 初始化 Gemini Client (新版寫法)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+# 如果有 KEY 就建立 client，否則設為 None，稍後在 API 內阻擋
+gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 class ChatRequest(BaseModel):
+    # ⚠️ 這裡要確保你前端送來的 JSON 真的有這兩個 key 喔！
+    # 如果前端暫時送不出 employee_name，可以先改成: employee_name: str = "Daniel" 
     employee_name: str
     query: str
 
@@ -21,17 +23,19 @@ class ChatRequest(BaseModel):
 @router.post("/")
 def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
     """接收使用者提問，查詢資料庫並請 Gemini 回答"""
-    if not GEMINI_API_KEY:
+    if not gemini_client:
         raise HTTPException(status_code=500, detail="未設定 GEMINI_API_KEY，智能大腦無法運作！請補上 .env 設定。")
 
+    # 撈取資料庫
     records = db.query(Attendance).filter(
         Attendance.employee_name == request.employee_name
     ).order_by(Attendance.date.desc()).limit(30).all()
     
     if not records:
+        # 注意：如果找不到紀錄，直接回傳給前端，不用浪費 API 額度叫 Gemini 回答
         return {"reply": f"我目前還沒有找到 {request.employee_name} 的任何打卡紀錄喔。"}
 
-    # 組合紀錄文字
+    # 組合紀錄文字 (RAG 的 Context)
     record_text = f"以下是員工 {request.employee_name} 近期的出勤紀錄：\n"
     for r in records:
         check_in = r.check_in_time.strftime("%H:%M") if r.check_in_time else "未打卡"
@@ -57,9 +61,14 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
 """
 
     try:
-        model = genai.GenerativeModel("gemini-3.1-flash-lite-preview")
-        response = model.generate_content(prompt)
+        # 2. 呼叫新版 SDK 的寫法
+        # 注意：我先把模型改為最常用的 gemini-2.5-flash，因為這是最標準的 API 模型名稱
+        response = gemini_client.models.generate_content(
+            model='gemini-2.5-flash', 
+            contents=prompt
+        )
         return {"reply": response.text.strip()} 
     except Exception as e:
+        # 如果印出這個錯誤，就可以在 Docker log 看到詳細原因了
+        print(f"Gemini API 發生錯誤: {str(e)}") 
         raise HTTPException(status_code=500, detail=f"Gemini API 錯誤: {str(e)}")
-

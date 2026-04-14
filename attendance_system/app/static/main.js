@@ -349,7 +349,7 @@ async function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
     if (!text) return;
-    
+
     const body = document.getElementById('chatBody');
     body.innerHTML += `<div class="chat-msg msg-user">${text}</div>`;
     input.value = '';
@@ -367,7 +367,12 @@ async function sendChatMessage() {
             body: JSON.stringify({ employee_name: currentEmployeeName, query: text })
         });
         const data = await res.json();
-        body.innerHTML += `<div class="chat-msg msg-bot">${data.reply || "錯誤"}</div>`;
+        if (res.ok) {
+            body.innerHTML += `<div class="chat-msg msg-bot">${data.reply}</div>`;
+        } else {
+            // 如果後端噴錯，把後端的詳細錯誤訊息 (detail) 印在畫面上
+            body.innerHTML += `<div class="chat-msg msg-bot" style="color:#f87171;">系統提示：${data.detail || "發生未知錯誤"}</div>`;
+        }
         body.scrollTop = body.scrollHeight;
     } catch (e) { }
 }
