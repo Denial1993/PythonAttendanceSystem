@@ -349,10 +349,17 @@ async function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
     if (!text) return;
+    
     const body = document.getElementById('chatBody');
     body.innerHTML += `<div class="chat-msg msg-user">${text}</div>`;
     input.value = '';
     body.scrollTop = body.scrollHeight;
+
+    if (!currentEmployeeName) {
+        body.innerHTML += `<div class="chat-msg msg-bot" style="color:#f87171;">請先登入系統才能使用智能助理喔！</div>`;
+        body.scrollTop = body.scrollHeight;
+        return;
+    }
     try {
         const res = await fetch('/api/chat', {
             method: 'POST',
