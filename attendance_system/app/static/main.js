@@ -25,6 +25,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // 請假申請 按鈕
+    const btnSubmitLeave = document.getElementById('btnSubmitLeave');
+    if (btnSubmitLeave) {
+        btnSubmitLeave.addEventListener('click', submitLeaveRequest);
+    }
+
     if (currentEmployeeName) {
         setupDashboardAuth();
     } else {
@@ -768,7 +774,7 @@ async function submitLeaveRequest() {
             alert(`請假失敗：${data.detail || '未知錯誤'}`);
         }
     } catch (e) {
-         alert("無法連接伺服器，請檢查網路！");
+        alert("無法連接伺服器，請檢查網路！");
     }
 }
 
