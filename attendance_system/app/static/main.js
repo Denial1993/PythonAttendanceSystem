@@ -71,7 +71,7 @@ function switchSection(sectionId) {
 
         if (sectionId === 'home') { loadPersonalStatus(); loadBoardData(); }
         if (sectionId === 'stats') { loadMyProfile(); loadMonthlySummary(); }
-        if (sectionId === 'leave') { loadMyLeaves(); loadPendingLeaves(); }
+        if (sectionId === 'leave') { loadLeaveBalances(); loadMyLeaves(); loadPendingLeaves(); }
         if (sectionId === 'staff') { loadStaffList(); }
         if (sectionId === 'settings') { loadSystemSettings(); }
     }
@@ -703,7 +703,74 @@ async function performSearch() {
         resultList.innerHTML = `<div style="color: #f87171; padding: 10px;">無法連接伺服器，請檢查網路狀態。</div>`;
     }
 }
-async function submitLeaveRequest() { }
+async function loadLeaveBalances() {
+    const username = localStorage.getItem('username');
+    if (!username) return;
+    try {
+        const res = await fetch(`/api/users/me/leave_balances?username=${encodeURIComponent(username)}`);
+        const block = document.getElementById('leaveBalancesBlock');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.length === 0) {
+                block.innerHTML = '目前無任何假勤額度紀錄。';
+                return;
+            }
+            block.innerHTML = data.map(item => {
+                const available = (item.total_hours - item.used_hours).toFixed(1);
+                return `<div style="margin-bottom: 5px;">
+                    <span style="display:inline-block; width:60px; font-weight:bold; color:white;">${item.leave_type}</span>
+                    <span style="color:#4ade80;">可用額度: ${available} 小時</span>
+                    <span style="margin-left: 10px; color:#a0a0b0; font-size:0.8rem;">(總計: ${item.total_hours} | 已用: ${item.used_hours})</span>
+                </div>`;
+            }).join('');
+        } else {
+            block.innerHTML = '<span style="color:#f87171;">無法載入餘額</span>';
+        }
+    } catch (e) {
+        document.getElementById('leaveBalancesBlock').innerHTML = '<span style="color:#f87171;">連線錯誤</span>';
+    }
+}
+
+async function submitLeaveRequest() {
+    const leaveType = document.getElementById('leaveType').value;
+    const leaveStart = document.getElementById('leaveStart').value;
+    const leaveEnd = document.getElementById('leaveEnd').value;
+    const leaveReason = document.getElementById('leaveReason').value;
+    const username = localStorage.getItem('username');
+
+    if (!leaveStart || !leaveEnd) {
+        showNotification("請完整填寫開始與結束時間", true);
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/leave?username=${encodeURIComponent(username)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                leave_type: leaveType,
+                start_time: leaveStart,
+                end_time: leaveEnd,
+                reason: leaveReason
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            showNotification("請假申請已送出！");
+            document.getElementById('leaveStart').value = '';
+            document.getElementById('leaveEnd').value = '';
+            document.getElementById('leaveReason').value = '';
+            loadMyLeaves();
+        } else {
+            // 前端正確攔截並跳出錯誤提示對話框
+            alert(`請假失敗：${data.detail || '未知錯誤'}`);
+        }
+    } catch (e) {
+         alert("無法連接伺服器，請檢查網路！");
+    }
+}
 
 // --------------------------------------------------------
 // 系統設定

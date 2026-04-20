@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Time, Float
+from sqlalchemy import Column, Integer, String, Date, Time, Float, Boolean
 from app.database import Base
 
 class User(Base):
@@ -12,6 +12,7 @@ class User(Base):
     phone = Column(String, nullable=True, comment="聯絡電話")
     address = Column(String, nullable=True, comment="居住地址")
     salary = Column(Integer, nullable=True, comment="月薪 (新台幣)")
+    hire_date = Column(Date, nullable=True, comment="到職日 (用於計算特休週年制)")
 
 
 class Attendance(Base):
@@ -50,3 +51,21 @@ class LeaveRequest(Base):
     status = Column(String, default="pending", comment="審核狀態 (pending, approved, rejected)")
     created_at = Column(String, nullable=False, comment="假單建立時間")
     updated_at = Column(String, nullable=False, comment="假單最後更新時間")
+
+class Holidays(Base):
+    __tablename__ = "holidays"
+
+    date = Column(Date, primary_key=True, index=True, comment="日期")
+    name = Column(String, nullable=False, comment="節日或補班日名稱")
+    is_holiday = Column(Boolean, default=True, comment="是否為放假日 (True: 放假, False: 補班照常上班)")
+
+class LeaveBalances(Base):
+    __tablename__ = "leave_balances"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True, nullable=False, comment="員工 ID")
+    leave_type = Column(String, nullable=False, comment="假別 (例如: 特休, 事假, 病假)")
+    total_hours = Column(Float, nullable=False, default=0.0, comment="總時數")
+    used_hours = Column(Float, nullable=False, default=0.0, comment="已用時數")
+    valid_from = Column(Date, nullable=False, comment="生效日")
+    valid_until = Column(Date, nullable=False, comment="失效日")

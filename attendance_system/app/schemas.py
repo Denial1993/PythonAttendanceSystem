@@ -7,6 +7,7 @@ class UserCreate(BaseModel):
     password: str
     employee_name: str
     role: int = 3
+    hire_date: Optional[date] = None
 
 class UserLogin(BaseModel):
     username: str
@@ -20,6 +21,7 @@ class UserResponse(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     salary: Optional[int] = None
+    hire_date: Optional[date] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -27,6 +29,7 @@ class UserProfileUpdate(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     salary: Optional[int] = None
+    hire_date: Optional[date] = None
 
 class AttendanceBase(BaseModel):
     employee_name: str
@@ -109,3 +112,25 @@ class SystemSettingsResponse(SystemSettingsBase):
 
 class SystemSettingsUpdate(BaseModel):
     setting_value: Optional[str] = None
+
+# === 假勤餘額與行事曆相關 ===
+class LeaveBalanceBase(BaseModel):
+    leave_type: str
+    total_hours: float
+    used_hours: float
+    valid_from: date
+    valid_until: date
+
+class LeaveBalanceResponse(LeaveBalanceBase):
+    id: int
+    user_id: int
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class HolidayBase(BaseModel):
+    date: date
+    name: str
+    is_holiday: bool
+
+class HolidayResponse(HolidayBase):
+    model_config = ConfigDict(from_attributes=True)

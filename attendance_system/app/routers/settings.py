@@ -46,3 +46,24 @@ def update_setting(setting_key: str, update_data: SystemSettingsUpdate, username
     db.commit()
     db.refresh(setting)
     return setting
+
+from app.schemas import HolidayBase
+from app.models import Holidays
+
+@router.post("/holidays/batch", response_model=dict)
+def batch_update_holidays(holidays: List[HolidayBase], username: str, db: Session = Depends(get_db)):
+    """批次匯入行事曆 (覆蓋或新增)"""
+    verify_admin(username, db)
+    
+    count = 0
+    for h in holidays:
+        record = db.query(Holidays).filter(Holidays.date == h.date).first()
+        if record:
+            record.name = h.name
+            record.is_holiday = h.is_holiday
+        else:
+            db.add(Holidays(date=h.date, name=h.name, is_holiday=h.is_holiday))
+        count += 1
+        
+    db.commit()
+    return {"message": f"成功處理 {count} 筆假日資料"}

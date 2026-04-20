@@ -17,6 +17,16 @@ jobs:
       - name: 取得程式碼
         uses: actions/checkout@v4
 
+      # 🌟 [新增 Step 1] 安裝 QEMU (跨平台模擬器)
+      # 這是讓 x86 的 GitHub 伺服器能夠編譯 ARM 程式碼的關鍵
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 🌟 [新增 Step 2] 設定 Docker Buildx
+      # 這是 Docker 官方支援多架構打包 (Multi-arch build) 的進階引擎
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: 登入 GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -30,10 +40,12 @@ jobs:
         with:
           string: ${{ github.repository }}
 
+      # 🌟 [修改 Step] 建立並推送到雲端倉庫 (加入 platforms 參數)
       - name: 建立並推送到雲端倉庫
         uses: docker/build-push-action@v5
         with:
-          context: ./attendance_system   # 👈 告訴它去這個子資料夾裡面找 Dockerfile
+          context: ./attendance_system
           push: true
-          # 這裡會自動生成像是 ghcr.io/你的帳號/你的專案:latest
+          # 👇 這是最核心的修改！告訴 Docker 同時打包兩種架構 👇
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ steps.string.outputs.lowercase }}:latest

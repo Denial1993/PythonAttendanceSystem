@@ -14,9 +14,27 @@ def create_leave_request(
     username: str, # 用 username 查詢當前操作人 (Role 3)
     db: Session = Depends(get_db)
 ):
+    from app.utils import calculate_request_hours, check_leave_balance
+
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+        
+    try:
+        start_dt = datetime.fromisoformat(request.start_time)
+        end_dt = datetime.fromisoformat(request.end_time)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format, expect ISO format.")
+
+    # 計算時數
+    total_req_hours = calculate_request_hours(start_dt, end_dt, db)
+    if total_req_hours <= 0:
+        raise HTTPException(status_code=400, detail="計算得出請假時數為 0，無需請假。")
+    
+    # 檢查餘額
+    from datetime import date
+    if not check_leave_balance(user.id, request.leave_type, total_req_hours, date.today(), db):
+        raise HTTPException(status_code=400, detail=f"{request.leave_type} 額度不足 (需求 {total_req_hours} 小時)")
     
     new_leave = models.LeaveRequest(
         user_id=user.id,
@@ -82,6 +100,20 @@ def update_leave_status(
     if not leave:
         raise HTTPException(status_code=404, detail="Leave request not found")
         
+    from app.utils import calculate_request_hours, deduct_leave_balance
+
+    # 如果是由 pending 轉為 approved，則扣除額度
+    if leave.status == "pending" and request.status == "approved":
+        try:
+            start_dt = datetime.fromisoformat(leave.start_time)
+            end_dt = datetime.fromisoformat(leave.end_time)
+            req_hours = calculate_request_hours(start_dt, end_dt, db)
+            
+            from datetime import date
+            deduct_leave_balance(leave.user_id, leave.leave_type, req_hours, date.today(), db)
+        except ValueError:
+            pass # 如果舊資料格式不對則忽略
+
     leave.status = request.status
     leave.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     

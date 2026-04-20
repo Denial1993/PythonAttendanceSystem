@@ -104,3 +104,19 @@ def update_user_profile(
     db.commit()
     db.refresh(target_user)
     return target_user
+
+from app.models import LeaveBalances
+from app.schemas import LeaveBalanceResponse
+from datetime import date
+
+@router.get("/me/leave_balances", response_model=List[LeaveBalanceResponse])
+def get_my_leave_balances(username: str, db: Session = Depends(get_db)):
+    """取得員工當下有效的各類假勤餘額"""
+    user = _get_current_user_by_username(username, db)
+    today = date.today()
+    balances = db.query(LeaveBalances).filter(
+        LeaveBalances.user_id == user.id,
+        LeaveBalances.valid_from <= today,
+        LeaveBalances.valid_until >= today
+    ).all()
+    return balances
