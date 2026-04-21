@@ -638,7 +638,68 @@ async function loadStaffList() {
         tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#f87171;">無法連接伺服器，請檢查網路</td></tr>';
     }
 }
-async function loadMyLeaves() { }
+// 員工查看自己的請假結果
+async function loadMyLeaves() {
+    const username = localStorage.getItem('username');
+    if (!username) return;
+
+    try {
+        console.log("📡 [API] 正在向伺服器請求個人假單紀錄...");
+        // 呼叫後端 API，這支 API 已經內建權限過濾，會自動回傳該帳號的假單
+        const res = await fetch(`/api/leave?username=${encodeURIComponent(username)}`);
+
+        // ⚠️ 這裡要注意：請確認你的 HTML 裡「我的假單紀錄」下方有一個容器 ID 叫 'myLeaveList'
+        const container = document.getElementById('myLeaveList');
+
+        if (!container) {
+            console.error("❌ [DOM] 找不到 ID 為 'myLeaveList' 的 HTML 容器！");
+            return;
+        }
+
+        if (res.ok) {
+            const data = await res.json();
+            console.log("✅ [API] 成功拿到個人假單資料:", data);
+
+            if (data.length === 0) {
+                container.innerHTML = '<div style="color:#a0a0b0; padding:10px;">目前沒有任何假單紀錄。</div>';
+                return;
+            }
+
+            // 將假單資料渲染成 HTML
+            container.innerHTML = data.map(leave => {
+                // 根據狀態給予不同顏色與文字
+                let statusColor = "#fb923c"; // 預設橘色 (待審核)
+                let statusText = "待審核";
+
+                if (leave.status === 'approved') {
+                    statusColor = "#4ade80"; // 綠色
+                    statusText = "已核准";
+                } else if (leave.status === 'rejected') {
+                    statusColor = "#f87171"; // 紅色
+                    statusText = "已駁回";
+                }
+
+                return `
+                <div class="board-item" style="border-left: 4px solid ${statusColor}; margin-bottom: 10px;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <b>${leave.leave_type}</b>
+                        <span style="color:${statusColor}; font-weight:bold;">${statusText}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #d0d0d0; margin: 5px 0;">
+                        ${leave.start_time.replace('T', ' ')} ~ ${leave.end_time.replace('T', ' ')}
+                    </div>
+                    <div style="font-size: 0.85rem; color: #a0a0b0;">
+                        理由：${leave.reason || '無'}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    } catch (e) {
+        console.error("❌ [Network] 載入個人假單失敗:", e);
+    }
+}
+
+// 主管查看待審核假單
 async function loadPendingLeaves() {
     const role = localStorage.getItem('role');
     const username = localStorage.getItem('username');
