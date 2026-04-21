@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-
 from app.database import get_db
 from app.models import User
 from app.schemas import UserResponse, UserProfileUpdate
 from pydantic import BaseModel
+from app.models import LeaveBalances
+from app.schemas import LeaveBalanceResponse
+from datetime import date
 
 # 定義前端傳過來的資料格式 (DTO)
 class UserUpdateRequest(BaseModel):
@@ -73,6 +75,18 @@ def update_my_profile(request: UserUpdateRequest, db: Session = Depends(get_db))
 
     return {"message": "個人資料更新成功", "phone": user.phone, "address": user.address, "salary": user.salary}
 
+@router.get("/me/leave_balances", response_model=List[LeaveBalanceResponse])
+def get_my_leave_balances(username: str, db: Session = Depends(get_db)):
+    """取得員工當下有效的各類假勤餘額"""
+    user = _get_current_user_by_username(username, db)
+    today = date.today()
+    balances = db.query(LeaveBalances).filter(
+        LeaveBalances.user_id == user.id,
+        LeaveBalances.valid_from <= today,
+        LeaveBalances.valid_until >= today
+    ).all()
+    return balances
+
 
 @router.put("/{user_id}", response_model=UserResponse)
 def update_user_profile(
@@ -105,18 +119,5 @@ def update_user_profile(
     db.refresh(target_user)
     return target_user
 
-from app.models import LeaveBalances
-from app.schemas import LeaveBalanceResponse
-from datetime import date
 
-@router.get("/me/leave_balances", response_model=List[LeaveBalanceResponse])
-def get_my_leave_balances(username: str, db: Session = Depends(get_db)):
-    """取得員工當下有效的各類假勤餘額"""
-    user = _get_current_user_by_username(username, db)
-    today = date.today()
-    balances = db.query(LeaveBalances).filter(
-        LeaveBalances.user_id == user.id,
-        LeaveBalances.valid_from <= today,
-        LeaveBalances.valid_until >= today
-    ).all()
-    return balances
+

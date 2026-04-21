@@ -639,7 +639,67 @@ async function loadStaffList() {
     }
 }
 async function loadMyLeaves() { }
-async function loadPendingLeaves() { }
+async function loadPendingLeaves() {
+    const role = localStorage.getItem('role');
+    const username = localStorage.getItem('username');
+
+    // 🕵️ 監視器 1：確認 Function 有沒有被執行
+    console.log("🔍 [Debug] loadPendingLeaves 偵測到分頁切換，準備執行...");
+
+    // 只有管理員 (1) 或主管 (2) 才需要載入待審核清單
+    if (role !== '1' && role !== '2') {
+        console.log("⚠️ [Auth] 權限不足，略過待審核假單載入。");
+        return;
+    }
+
+    try {
+        console.log("📡 [API] 正在向伺服器請求待審核假單...");
+        const res = await fetch(`/api/leave/pending?username=${encodeURIComponent(username)}`);
+        const block = document.getElementById('leaveApprovalBlock'); // 這是你的 HTML 容器 ID
+        if (res.ok) {
+            const data = await res.json();
+            // 🕵️ 監視器 3：看後端到底回傳了什麼
+            console.log("✅ [API] 成功拿到假單資料:", data);
+
+            if (data.length === 0) {
+                block.innerHTML = '<div style="color:#a0a0b0;">目前沒有待處理的假單。</div>';
+                return;
+            }
+            // 將假單資料渲染成 HTML
+            block.innerHTML = data.map(leave => `
+                <div class="board-item">
+                    <b>${leave.employee_name}</b> 申請 <b>${leave.leave_type}</b><br>
+                    <small>${leave.start_time} ~ ${leave.end_time}</small><br>
+                    <span>理由：${leave.reason || '無'}</span>
+                    <div style="margin-top: 5px;">
+                        <button class="btn btn-primary" onclick="approveLeave(${leave.id}, 'approved')">核准</button>
+                        <button class="btn btn-outline" onclick="approveLeave(${leave.id}, 'rejected')">駁回</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (e) {
+        console.error("載入待審核假單失敗", e);
+    }
+}
+
+async function approveLeave(leaveId, status) {
+    const username = localStorage.getItem('username');
+    try {
+        const res = await fetch(`/api/leave/${leaveId}/status?username=${encodeURIComponent(username)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: status })
+        });
+        if (res.ok) {
+            showNotification(`已${status === 'approved' ? '核准' : '駁回'}假單`);
+            loadPendingLeaves(); // 重新整理列表
+        }
+    } catch (e) {
+        showNotification("連線失敗", true);
+    }
+}
+
 async function performSearch() {
     // 1. 抓取畫面上的日期與輸入框資料
     const startDate = document.getElementById('searchStartDate').value;

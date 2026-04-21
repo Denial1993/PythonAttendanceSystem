@@ -83,6 +83,32 @@ def get_leave_requests(
         
     return response_list
 
+@router.get("/pending", response_model=List[schemas.LeaveRequestResponse])
+def get_pending_leave_requests(
+    username: str, 
+    db: Session = Depends(get_db)
+):
+    # 1. 權限檢查 (就像 .NET 的 [Authorize(Roles="1,2")])
+    current_user = db.query(models.User).filter(models.User.username == username).first()
+    if not current_user or current_user.role not in [1, 2]:
+        raise HTTPException(status_code=403, detail="只有管理員能查看待審核假單")
+
+    # 2. 撈取狀態為 pending 的資料
+    query = db.query(models.LeaveRequest, models.User).join(
+        models.User, models.LeaveRequest.user_id == models.User.id
+    ).filter(models.LeaveRequest.status == "pending")
+    
+    results = query.order_by(models.LeaveRequest.created_at.desc()).all()
+    
+    # 3. 整理回傳格式 (就像轉成 DTO)
+    response_list = []
+    for leave_reg, usr in results:
+        r = schemas.LeaveRequestResponse.model_validate(leave_reg)
+        r.employee_name = usr.employee_name
+        response_list.append(r)
+        
+    return response_list
+
 @router.put("/{leave_id}/status", response_model=schemas.LeaveRequestResponse)
 def update_leave_status(
     leave_id: int,
