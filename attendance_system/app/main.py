@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, APIRouter, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -7,6 +7,9 @@ import time  # ✅ 新增這行引入 time 模組
 
 from app.database import engine, Base
 from app.routers import attendance, chat, auth, users, leave, settings
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from app.database import get_db
 
 # 啟動時自動建立所有的資料庫表格 (正式環境通常由 Alembic 代勞，這裡為了方便測試)
 Base.metadata.create_all(bind=engine)
@@ -41,3 +44,10 @@ async def read_root(request: Request):
         name="index.html", 
         context={"request": request, "version": cache_buster}
     )
+
+
+@app.get("/api/health")
+def health_check(db: Session = Depends(get_db)):
+    # 對 Supabase 下達一個最輕量的查詢指令
+    db.execute(text("SELECT 1"))
+    return {"status": "alive", "database": "connected"}
