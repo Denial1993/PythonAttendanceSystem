@@ -64,7 +64,7 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
         # 2. 呼叫新版 SDK 的寫法
         # 注意：我先把模型改為最常用的 gemini-2.5-flash，因為這是最標準的 API 模型名稱
         response = gemini_client.models.generate_content(
-            model='gemini-2.5-flash', 
+            model='Gemini 3 Flash', 
             contents=prompt
         )
         return {"reply": response.text.strip()} 

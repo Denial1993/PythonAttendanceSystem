@@ -47,6 +47,7 @@ async def read_root(request: Request):
 
 
 @app.get("/api/health")
+@app.head("/api/health") # 👈 新增這行，明確支援 HEAD 請求
 def health_check(db: Session = Depends(get_db)):
     # 對 Supabase 下達一個最輕量的查詢指令
     db.execute(text("SELECT 1"))
