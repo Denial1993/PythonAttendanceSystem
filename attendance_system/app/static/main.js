@@ -130,9 +130,17 @@ function setupDashboardAuth() {
     const searchStart = document.getElementById('searchStartDate');
     const searchEnd = document.getElementById('searchEndDate');
     const monthPicker = document.getElementById('monthPicker');
+    const boardMonthPicker = document.getElementById('boardMonthPicker');
     if (searchStart) searchStart.value = todayStr;
     if (searchEnd) searchEnd.value = todayStr;
     if (monthPicker) monthPicker.value = todayStr.substring(0, 7);
+    if (boardMonthPicker) {
+        boardMonthPicker.value = todayStr.substring(0, 7);
+        // 限制年份為當年度
+        const currentYear = new Date().getFullYear();
+        boardMonthPicker.min = `${currentYear}-01`;
+        boardMonthPicker.max = `${currentYear}-12`;
+    }
 
     switchSection('home');
 }
@@ -270,28 +278,52 @@ async function performAction(action) {
 }
 
 async function loadPersonalStatus() {
+    if (!currentEmployeeName) return;
     try {
         const res = await fetch(`/api/attendance/${encodeURIComponent(currentEmployeeName)}`);
         const data = await res.json();
-        if (data.length > 0) {
+        const statusVal = document.getElementById('statusVal');
+        const valCheckIn = document.getElementById('valCheckIn');
+        const valCheckOut = document.getElementById('valCheckOut');
+
+        const todayStr = new Date().toLocaleDateString('en-CA');
+
+        if (data.length > 0 && data[0].date === todayStr) {
             const rec = data[0];
-            const statusVal = document.getElementById('statusVal');
-            const valCheckIn = document.getElementById('valCheckIn');
-            const valCheckOut = document.getElementById('valCheckOut');
             if (statusVal) statusVal.textContent = rec.status;
             if (valCheckIn) valCheckIn.textContent = rec.check_in_time ? rec.check_in_time.substring(0, 5) : '-';
             if (valCheckOut) valCheckOut.textContent = rec.check_out_time ? rec.check_out_time.substring(0, 5) : '-';
+        } else {
+            if (statusVal) statusVal.textContent = "今日尚未打卡";
+            if (valCheckIn) valCheckIn.textContent = '-';
+            if (valCheckOut) valCheckOut.textContent = '-';
         }
     } catch (e) { }
 }
 
 async function loadBoardData() {
     if (localStorage.getItem('role') === '3') return;
+    const boardMonthPicker = document.getElementById('boardMonthPicker');
+    if (!boardMonthPicker) return;
+
+    const selectedMonth = boardMonthPicker.value; // YYYY-MM
+    if (!selectedMonth) return;
+
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const startDate = `${selectedMonth}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endDate = `${selectedMonth}-${String(lastDay).padStart(2, '0')}`;
+
     try {
-        const res = await fetch(`/api/attendance/today?username=${localStorage.getItem('username')}`);
+        const username = localStorage.getItem('username');
+        const res = await fetch(`/api/attendance/search?start_date=${startDate}&end_date=${endDate}&username=${encodeURIComponent(username)}`);
         const data = await res.json();
         const list = document.getElementById('boardList');
         if (list) {
+            if (data.length === 0) {
+                list.innerHTML = '<div style="color:#a0a0b0; padding:10px; text-align:center;">此月份尚無紀錄</div>';
+                return;
+            }
             list.innerHTML = data.map(r => {
                 let mapBtnStr = '';
                 if (localStorage.getItem('role') === '1') {
@@ -302,7 +334,16 @@ async function loadBoardData() {
                         mapBtnStr += ` <i class="fa fa-map-marker-alt" style="cursor:pointer;color:#f87171;" title="下班位置" onclick="openMapModal(${r.check_out_lat}, ${r.check_out_lng}, '${r.employee_name} 下班打卡地點')"></i>`;
                     }
                 }
-                return `<div class="board-item"><span>${r.employee_name}</span> <span class="status-work">${r.status} ${r.check_in_time?.substring(0, 5) || ''}${mapBtnStr}</span></div>`;
+                return `<div class="board-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                    <div style="display:flex; justify-content:space-between; width:100%;">
+                        <span style="font-weight:600;">${r.employee_name}</span>
+                        <span class="status-work" style="font-size:0.8rem; padding: 2px 8px; border-radius:8px;">${r.status}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #a0a0b0; display: flex; justify-content: space-between; width: 100%;">
+                        <span><i class="fa-regular fa-calendar"></i> ${r.date}</span>
+                        <span>${r.check_in_time?.substring(0, 5) || ''} ${mapBtnStr}</span>
+                    </div>
+                </div>`;
             }).join('');
         }
     } catch (e) { }
@@ -313,6 +354,35 @@ async function loadBoardData() {
 // --------------------------------------------------------
 let mapInstance = null;
 let currentMarker = null;
+let settingsMapInstance = null;
+let settingsMarker = null;
+
+function updateSettingsMap(lat, lng) {
+    if (!lat || !lng) return;
+    const l = parseFloat(lat);
+    const g = parseFloat(lng);
+    if (isNaN(l) || isNaN(g)) return;
+
+    setTimeout(() => {
+        if (!settingsMapInstance) {
+            settingsMapInstance = L.map('settingsMap').setView([l, g], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(settingsMapInstance);
+        } else {
+            settingsMapInstance.setView([l, g], 16);
+            settingsMapInstance.invalidateSize();
+        }
+
+        if (settingsMarker) {
+            settingsMapInstance.removeLayer(settingsMarker);
+        }
+        settingsMarker = L.marker([l, g]).addTo(settingsMapInstance)
+            .bindPopup("公司基準位置")
+            .openPopup();
+    }, 200);
+}
 
 function openMapModal(lat, lng, titleStr) {
     const modal = document.getElementById('mapModal');
@@ -904,15 +974,22 @@ async function submitLeaveRequest() {
 // --------------------------------------------------------
 async function loadSystemSettings() {
     try {
+        let lat = '';
+        let lng = '';
         const res1 = await fetch(`/api/settings/company_base_lat`);
         if (res1.ok) {
             const data = await res1.json();
-            document.getElementById('settingLat').value = data.setting_value || '';
+            lat = data.setting_value || '';
+            document.getElementById('settingLat').value = lat;
         }
         const res2 = await fetch(`/api/settings/company_base_lng`);
         if (res2.ok) {
             const data = await res2.json();
-            document.getElementById('settingLng').value = data.setting_value || '';
+            lng = data.setting_value || '';
+            document.getElementById('settingLng').value = lng;
+        }
+        if (lat && lng) {
+            updateSettingsMap(lat, lng);
         }
     } catch (e) { }
 }
@@ -942,6 +1019,7 @@ async function saveSystemSettings() {
 
         if (res1.ok && res2.ok) {
             showNotification("座標設定已儲存");
+            updateSettingsMap(lat, lng);
         } else {
             showNotification("儲存失敗，請檢查權限", true);
         }

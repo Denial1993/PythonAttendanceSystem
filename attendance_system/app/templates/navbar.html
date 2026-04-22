@@ -1,27 +1,38 @@
-<nav class="navbar">
-    <div class="nav-logo">
-        <i class="fa-solid fa-clock"></i> 智能打卡系統
-    </div>
-
-    <div class="nav-menu" id="navMenu" style="display: none;">
-        <div class="nav-link active" onclick="switchSection('home')"><i class="fa-solid fa-house"></i> 首頁打卡</div>
-        <div class="nav-link" onclick="switchSection('search')"><i class="fa-solid fa-magnifying-glass"></i> 進階查詢
+<aside class="sidebar" id="navMenu">
+    <div class="sidebar-header">
+        <div class="nav-logo">
+            <i class="fa-solid fa-clock"></i> 智能打卡
         </div>
-        <div class="nav-link" onclick="switchSection('leave')"><i class="fa-solid fa-file-signature"></i> 請假系統</div>
-        <div class="nav-link" onclick="switchSection('stats')"><i class="fa-solid fa-chart-bar"></i> 出勤統計</div>
-        <div class="nav-link" id="navStaffList" style="display: none;" onclick="switchSection('staff')"><i
-                class="fa-solid fa-users-gear"></i> 員工名冊 </div>
-        <div class="nav-link" id="navSystemSettings" style="display: none;" onclick="switchSection('settings')"><i
-                class="fa-solid fa-cogs"></i> 系統設定</div>
     </div>
 
-    <div class="nav-user" id="navUser" style="display: none;">
-        <span class="nav-user-name" id="displayEmployeeName"></span>
-        <button class="btn-logout-sm" onclick="performLogout()"><i class="fa-solid fa-right-from-bracket"></i>
-            登出</button>
+    <div class="nav-menu">
+        <div class="nav-link active" onclick="switchSection('home')">
+            <i class="fa-solid fa-house"></i> 首頁打卡
+        </div>
+        <div class="nav-link" onclick="switchSection('search')">
+            <i class="fa-solid fa-magnifying-glass"></i> 進階查詢
+        </div>
+        <div class="nav-link" onclick="switchSection('leave')">
+            <i class="fa-solid fa-file-signature"></i> 請假系統
+        </div>
+        <div class="nav-link" onclick="switchSection('stats')">
+            <i class="fa-solid fa-chart-bar"></i> 出勤統計
+        </div>
+        <div class="nav-link" id="navStaffList" style="display: none;" onclick="switchSection('staff')">
+            <i class="fa-solid fa-users-gear"></i> 員工名冊
+        </div>
+        <div class="nav-link" id="navSystemSettings" style="display: none;" onclick="switchSection('settings')">
+            <i class="fa-solid fa-cogs"></i> 系統設定
+        </div>
     </div>
 
-    <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">
-        <i class="fa-solid fa-bars"></i>
-    </button>
-</nav>
+    <div class="sidebar-footer" id="navUser" style="display: none;">
+        <div class="nav-user">
+            <i class="fa-solid fa-circle-user" style="font-size: 1.5rem; color: var(--accent);"></i>
+            <span class="nav-user-name" id="displayEmployeeName"></span>
+        </div>
+        <button class="btn-logout-sm" onclick="performLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i> 登出
+        </button>
+    </div>
+</aside>
