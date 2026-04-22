@@ -38,3 +38,22 @@
    ```bash
    git clone [https://github.com/Denial1993/PythonAttendanceSystem.git](https://github.com/Denial1993/PythonAttendanceSystem.git)
    cd PythonAttendanceSystem
+   
+2. **設定環境變數**:
+   建立 .env 檔案並填入你的 DATABASE_URL (Supabase) 與 GEMINI_API_KEY。
+
+3. **使用 Docker 啟動**:
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **訪問頁面**:
+   * 前端首頁: http://localhost:8000
+   * API 文件 (Swagger): http://localhost:8000/docs
+
+## 📘 檔案結構
+- `app/main.py`:  FastAPI 應用入口。
+- `app/models/`: SQLAlchemy 資料模型。
+- `app/routers/`: 各項功能 API 路由。
+- `app/schemas/`: Pydantic 資料驗證模型。
+- `docker-compose.yml`: 部署設定。
