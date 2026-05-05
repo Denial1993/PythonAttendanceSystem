@@ -76,7 +76,8 @@ function switchSection(sectionId) {
         if (navMenu) navMenu.classList.remove('show');
 
         if (sectionId === 'home') { loadPersonalStatus(); loadBoardData(); }
-        if (sectionId === 'stats') { loadMyProfile(); loadMonthlySummary(); }
+        if (sectionId === 'profile') { loadMyProfile(); }
+        if (sectionId === 'stats') { loadMonthlySummary(); }
         if (sectionId === 'leave') { loadLeaveBalances(); loadMyLeaves(); loadPendingLeaves(); }
         if (sectionId === 'staff') { loadStaffList(); }
         if (sectionId === 'settings') { loadSystemSettings(); }

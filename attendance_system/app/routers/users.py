@@ -26,7 +26,7 @@ def _get_current_user_by_username(username: str, db: Session) -> User:
     return user
 
 
-@router.get("", response_model=List[UserResponse])
+@router.get("/", response_model=List[UserResponse])
 def list_all_users(username: str, db: Session = Depends(get_db)):
     """
     取得所有員工的詳細資料列表（含電話、地址、薪資）。
