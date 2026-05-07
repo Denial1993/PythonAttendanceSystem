@@ -3,7 +3,7 @@
 // 從 inline script 移出為外部靜態檔案，避免 CSP 封鎖問題
 // ============================================================
 
-let currentEmployeeName = localStorage.getItem('employee_name');
+let currentEmployeeName = sessionStorage.getItem('employee_name');
 
 // ✅ 使用 DOMContentLoaded，確保所有 include 的 HTML 片段都已載入後再執行
 document.addEventListener('DOMContentLoaded', function () {
@@ -100,7 +100,7 @@ function setupDashboardAuth() {
     if (mobileMenuBtn) mobileMenuBtn.style.display = '';
     if (displayName) displayName.textContent = currentEmployeeName;
 
-    const role = localStorage.getItem('role');
+    const role = sessionStorage.getItem('role');
     const navStaffList = document.getElementById('navStaffList');
     const searchTarget = document.getElementById('searchTargetEmployee');
     const leaveApprovalBlock = document.getElementById('leaveApprovalBlock');
@@ -173,9 +173,9 @@ async function performLogin() {
         });
         const data = await res.json();
         if (res.ok) {
-            localStorage.setItem('employee_name', data.employee_name);
-            localStorage.setItem('username', u);
-            localStorage.setItem('role', String(data.role));
+            sessionStorage.setItem('employee_name', data.employee_name);
+            sessionStorage.setItem('username', u);
+            sessionStorage.setItem('role', String(data.role));
             currentEmployeeName = data.employee_name;
             setupDashboardAuth();
         } else {
@@ -222,7 +222,7 @@ async function performRegister() {
 }
 
 function performLogout() {
-    localStorage.clear();
+    sessionStorage.clear();
     currentEmployeeName = null;
     switchSection('authView');
 }
@@ -303,7 +303,7 @@ async function loadPersonalStatus() {
 }
 
 async function loadBoardData() {
-    if (localStorage.getItem('role') === '3') return;
+    if (sessionStorage.getItem('role') === '3') return;
     const boardMonthPicker = document.getElementById('boardMonthPicker');
     if (!boardMonthPicker) return;
 
@@ -316,7 +316,7 @@ async function loadBoardData() {
     const endDate = `${selectedMonth}-${String(lastDay).padStart(2, '0')}`;
 
     try {
-        const username = localStorage.getItem('username');
+        const username = sessionStorage.getItem('username');
         const res = await fetch(`/api/attendance/search?start_date=${startDate}&end_date=${endDate}&username=${encodeURIComponent(username)}`);
         const data = await res.json();
         const list = document.getElementById('boardList');
@@ -327,7 +327,7 @@ async function loadBoardData() {
             }
             list.innerHTML = data.map(r => {
                 let mapBtnStr = '';
-                if (localStorage.getItem('role') === '1') {
+                if (sessionStorage.getItem('role') === '1') {
                     if (r.check_in_lat && r.check_in_lng) {
                         mapBtnStr += ` <i class="fa fa-map-marker-alt" style="cursor:pointer;color:#4ade80;" title="上班位置" onclick="openMapModal(${r.check_in_lat}, ${r.check_in_lng}, '${r.employee_name} 上班打卡地點')"></i>`;
                     }
@@ -480,7 +480,7 @@ function toggleEditProfile() {
         document.getElementById('editProfileAddress').value = currentAddress !== '-' ? currentAddress : '';
         document.getElementById('editProfileSalary').value = currentSalary !== '-' ? currentSalary : '';
 
-        if (localStorage.getItem('role') === '3') {
+        if (sessionStorage.getItem('role') === '3') {
             document.getElementById('editSalaryRow').style.display = 'none';
         }
     } else {
@@ -494,8 +494,8 @@ async function saveProfile() {
     const phone = document.getElementById('editProfilePhone').value;
     const address = document.getElementById('editProfileAddress').value;
     const salaryInput = document.getElementById('editProfileSalary');
-    const username = localStorage.getItem('username');
-    const role = localStorage.getItem('role');
+    const username = sessionStorage.getItem('username');
+    const role = sessionStorage.getItem('role');
 
     // 準備要送出的資料，先不包含薪資
     const updateData = {
@@ -543,7 +543,7 @@ async function saveProfile() {
 }
 
 async function loadMyProfile() {
-    const username = localStorage.getItem('username');
+    const username = sessionStorage.getItem('username');
     if (!username) return;
 
     try {
@@ -571,8 +571,8 @@ async function loadMonthlySummary() {
 
     // 取得選擇的月份字串，格式會是 "YYYY-MM"，例如 "2026-04"
     const selectedMonth = monthPicker.value;
-    const employeeName = localStorage.getItem('employee_name') || currentEmployeeName;
-    const username = localStorage.getItem('username'); // 抓取當前登入者帳號
+    const employeeName = sessionStorage.getItem('employee_name') || currentEmployeeName;
+    const username = sessionStorage.getItem('username'); // 抓取當前登入者帳號
 
     if (!selectedMonth || !employeeName) return;
 
@@ -656,7 +656,7 @@ async function loadStaffList() {
     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#a0a0b0;"><i class="fa-solid fa-spinner fa-spin"></i> 載入資料中...</td></tr>';
 
     // 2. 取得當前登入者帳號 (後端通常需要用這個來檢查是否為管理員)
-    const username = localStorage.getItem('username');
+    const username = sessionStorage.getItem('username');
 
     try {
         // 3. 呼叫後端 API (把 username 帶過去驗證權限)
@@ -711,7 +711,7 @@ async function loadStaffList() {
 }
 // 員工查看自己的請假結果
 async function loadMyLeaves() {
-    const username = localStorage.getItem('username');
+    const username = sessionStorage.getItem('username');
     if (!username) return;
 
     try {
@@ -772,8 +772,8 @@ async function loadMyLeaves() {
 
 // 主管查看待審核假單
 async function loadPendingLeaves() {
-    const role = localStorage.getItem('role');
-    const username = localStorage.getItem('username');
+    const role = sessionStorage.getItem('role');
+    const username = sessionStorage.getItem('username');
 
     // 🕵️ 監視器 1：確認 Function 有沒有被執行
     console.log("🔍 [Debug] loadPendingLeaves 偵測到分頁切換，準備執行...");
@@ -816,7 +816,7 @@ async function loadPendingLeaves() {
 }
 
 async function approveLeave(leaveId, status) {
-    const username = localStorage.getItem('username');
+    const username = sessionStorage.getItem('username');
     try {
         const res = await fetch(`/api/leave/${leaveId}/status?username=${encodeURIComponent(username)}`, {
             method: 'PUT',
@@ -839,8 +839,8 @@ async function performSearch() {
     const targetEmployee = document.getElementById('searchTargetEmployee').value.trim();
     const resultList = document.getElementById('searchResultList');
 
-    // 👇 新增這行：從 localStorage 取得當前登入者的帳號 (對應後端的 username)
-    const currentUsername = localStorage.getItem('username');
+    // 👇 新增這行：從 sessionStorage 取得當前登入者的帳號 (對應後端的 username)
+    const currentUsername = sessionStorage.getItem('username');
 
     // 2. 基本防呆檢查
     if (!startDate || !endDate) {
@@ -902,7 +902,7 @@ async function performSearch() {
     }
 }
 async function loadLeaveBalances() {
-    const username = localStorage.getItem('username');
+    const username = sessionStorage.getItem('username');
     if (!username) return;
     try {
         const res = await fetch(`/api/users/me/leave_balances?username=${encodeURIComponent(username)}`);
@@ -934,7 +934,7 @@ async function submitLeaveRequest() {
     const leaveStart = document.getElementById('leaveStart').value;
     const leaveEnd = document.getElementById('leaveEnd').value;
     const leaveReason = document.getElementById('leaveReason').value;
-    const username = localStorage.getItem('username');
+    const username = sessionStorage.getItem('username');
 
     if (!leaveStart || !leaveEnd) {
         showNotification("請完整填寫開始與結束時間", true);
@@ -998,7 +998,7 @@ async function loadSystemSettings() {
 async function saveSystemSettings() {
     const lat = document.getElementById('settingLat').value;
     const lng = document.getElementById('settingLng').value;
-    const username = localStorage.getItem('username');
+    const username = sessionStorage.getItem('username');
 
     if (!lat || !lng) {
         showNotification("經緯度不能為空", true);
