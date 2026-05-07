@@ -14,7 +14,8 @@ class UserUpdateRequest(BaseModel):
     username: str
     phone: str = None
     address: str = None
-    salary: int = None  # 👈 新增這行：允許接收薪水資料
+    salary: int = None
+    hire_date: date = None  # 👈 新增這行：允許接收到職日期
     
 router = APIRouter()
 
@@ -51,7 +52,8 @@ def get_my_profile(username: str, db: Session = Depends(get_db)):
         "employee_name": user.employee_name, 
         "phone": user.phone, 
         "address": user.address, 
-        "salary": user.salary
+        "salary": user.salary,
+        "hire_date": user.hire_date
     }
 
 @router.put("/me")
@@ -66,14 +68,16 @@ def update_my_profile(request: UserUpdateRequest, db: Session = Depends(get_db))
         user.phone = request.phone
     if request.address is not None:
         user.address = request.address
-    if request.salary is not None:        # 👈 新增這兩行：把薪水存進資料庫
+    if request.salary is not None:
         user.salary = request.salary
+    if request.hire_date is not None:      # 👈 新增這兩行：把到職日存進資料庫
+        user.hire_date = request.hire_date
 
     # 3. 存檔回資料庫
     db.commit()
     db.refresh(user)
 
-    return {"message": "個人資料更新成功", "phone": user.phone, "address": user.address, "salary": user.salary}
+    return {"message": "個人資料更新成功", "phone": user.phone, "address": user.address, "salary": user.salary, "hire_date": user.hire_date}
 
 @router.get("/me/leave_balances", response_model=List[LeaveBalanceResponse])
 def get_my_leave_balances(username: str, db: Session = Depends(get_db)):

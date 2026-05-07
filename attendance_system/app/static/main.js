@@ -475,13 +475,16 @@ function toggleEditProfile() {
         const currentPhone = document.getElementById('profilePhone').textContent;
         const currentAddress = document.getElementById('profileAddress').textContent;
         const currentSalary = document.getElementById('profileSalary').textContent;
+        const currentHireDate = document.getElementById('profileHireDate').textContent;
 
         document.getElementById('editProfilePhone').value = currentPhone !== '-' ? currentPhone : '';
         document.getElementById('editProfileAddress').value = currentAddress !== '-' ? currentAddress : '';
         document.getElementById('editProfileSalary').value = currentSalary !== '-' ? currentSalary : '';
+        document.getElementById('editProfileHireDate').value = currentHireDate !== '-' ? currentHireDate : '';
 
         if (sessionStorage.getItem('role') === '3') {
             document.getElementById('editSalaryRow').style.display = 'none';
+            document.getElementById('editHireDateRow').style.display = 'none';
         }
     } else {
         document.getElementById('profileViewMode').style.display = 'block';
@@ -504,9 +507,11 @@ async function saveProfile() {
         address: address
     };
 
-    // 只有當使用者是管理員 (role === '1' 或 '2') 且真的有填寫薪資時，才把 salary 加入打包清單
-    if ((role === '1' || role === '2') && salaryInput && salaryInput.value) {
-        updateData.salary = parseInt(salaryInput.value);
+    // 只有當使用者是管理員 (role === '1' 或 '2') 且真的有填寫資料時，才加入打包清單
+    const hireDateInput = document.getElementById('editProfileHireDate');
+    if ((role === '1' || role === '2')) {
+        if (salaryInput && salaryInput.value) updateData.salary = parseInt(salaryInput.value);
+        if (hireDateInput && hireDateInput.value) updateData.hire_date = hireDateInput.value;
     }
 
     try {
@@ -524,6 +529,9 @@ async function saveProfile() {
             // 如果後端有回傳新的薪資才更新畫面（避免員工看到 null）
             if (data.salary !== undefined && document.getElementById('profileSalary')) {
                 document.getElementById('profileSalary').textContent = data.salary;
+            }
+            if (data.hire_date !== undefined && document.getElementById('profileHireDate')) {
+                document.getElementById('profileHireDate').textContent = data.hire_date || '-';
             }
             toggleEditProfile();
         } else {
@@ -554,10 +562,12 @@ async function loadMyProfile() {
             const profilePhone = document.getElementById('profilePhone');
             const profileAddress = document.getElementById('profileAddress');
             const profileSalary = document.getElementById('profileSalary');
+            const profileHireDate = document.getElementById('profileHireDate');
             if (profileName) profileName.textContent = data.employee_name || currentEmployeeName;
             if (profilePhone) profilePhone.textContent = data.phone || '-';
             if (profileAddress) profileAddress.textContent = data.address || '-';
             if (profileSalary) profileSalary.textContent = data.salary || '-';
+            if (profileHireDate) profileHireDate.textContent = data.hire_date || '-';
         }
     } catch (e) { }
 }
@@ -653,7 +663,7 @@ async function loadStaffList() {
     if (!tbody) return;
 
     // 1. 顯示載入中動畫
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#a0a0b0;"><i class="fa-solid fa-spinner fa-spin"></i> 載入資料中...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#a0a0b0;"><i class="fa-solid fa-spinner fa-spin"></i> 載入資料中...</td></tr>';
 
     // 2. 取得當前登入者帳號 (後端通常需要用這個來檢查是否為管理員)
     const username = sessionStorage.getItem('username');
@@ -668,7 +678,7 @@ async function loadStaffList() {
 
             // 如果查無資料 (理論上不可能，至少會有自己)
             if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#a0a0b0;">目前沒有其他員工資料</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#a0a0b0;">目前沒有其他員工資料</td></tr>';
                 return;
             }
 
@@ -693,6 +703,7 @@ async function loadStaffList() {
                 return `
                 <tr>
                     <td style="font-weight: bold;">${user.employee_name}</td>
+                    <td>${user.hire_date || '<span style="color:#666;">未設定</span>'}</td>
                     <td>${phoneStr}</td>
                     <td><span style="color: ${roleColor}; border: 1px solid ${roleColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">${roleName}</span></td>
                 </tr>`;
@@ -702,11 +713,11 @@ async function loadStaffList() {
             // 如果後端報錯 (例如 403 權限不足)
             const errData = await res.json();
             console.error("名冊讀取失敗:", errData);
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:15px; color:#f87171;">無法載入: ${errData.detail || '權限不足'}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:#f87171;">無法載入: ${errData.detail || '權限不足'}</td></tr>`;
         }
     } catch (e) {
         console.error("載入員工名冊失敗:", e);
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#f87171;">無法連接伺服器，請檢查網路</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#f87171;">無法連接伺服器，請檢查網路</td></tr>';
     }
 }
 // 員工查看自己的請假結果

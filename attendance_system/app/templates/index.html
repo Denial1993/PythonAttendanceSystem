@@ -82,6 +82,7 @@
                 <div>姓名：<span id="profileName">-</span></div>
                 <div>電話：<span id="profilePhone">-</span></div>
                 <div>地址：<span id="profileAddress">-</span></div>
+                <div>到職日期：<span id="profileHireDate">-</span></div>
                 <div id="profileSalaryRow">薪資：<span id="profileSalary">-</span></div>
             </div>
 
@@ -104,6 +105,12 @@
                     <label style="color:#d0d0d0; font-size:0.8rem; display:block; margin-bottom:5px;">薪資
                         (僅管理員可編輯)：</label>
                     <input type="number" id="editProfileSalary" placeholder="輸入數字..."
+                        style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                </div>
+                <div id="editHireDateRow" style="margin-bottom: 15px;">
+                    <label style="color:#d0d0d0; font-size:0.8rem; display:block; margin-bottom:5px;">到職日期
+                        (僅管理員可編輯)：</label>
+                    <input type="date" id="editProfileHireDate"
                         style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
                 </div>
                 <div style="display: flex; gap: 10px;">
@@ -190,6 +197,7 @@
                     <thead>
                         <tr>
                             <th>姓名</th>
+                            <th>到職日期</th>
                             <th>電話</th>
                             <th>角色</th>
                         </tr>
