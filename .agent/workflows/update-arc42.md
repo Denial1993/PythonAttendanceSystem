@@ -1,3 +1,7 @@
+---
+description: 
+---
+
 # /update-arc42
 
 檢查近期 git commit，判斷 `arc42/` 是否需要更新，並直接修改受影響的章節。

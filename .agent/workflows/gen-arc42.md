@@ -1,3 +1,7 @@
+---
+description: 
+---
+
 # Generate arc42 Architecture Document
 
 產生當前專案的 arc42 架構文件第一版草稿。
