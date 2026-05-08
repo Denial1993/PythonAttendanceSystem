@@ -53,7 +53,7 @@ app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
 app.include_router(leave.router, prefix="/api/leave", tags=["Leave"])
 app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
-app.include_router(admin.router, prefix="/admin", tags=["Admin"])
+app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 
 
 @app.get("/api/health")
